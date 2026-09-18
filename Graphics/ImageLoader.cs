@@ -3,68 +3,70 @@ using System.Runtime.InteropServices;
 
 namespace D007Adventure.Graphics
 {
-    // ============================================================
-    // IMAGE LOADER
-    // ============================================================
-    //
-    // Lädt Bilder direkt über die Windows API.
-    //
-    // Dadurch benötigen wir keine zusätzliche Bibliothek
-    // und auch kein System.Drawing.Common.
-    //
-    // ============================================================
-
     public class ImageLoader
     {
-        private const uint IMAGE_BITMAP = 0;
-        private const uint IMAGE_ICON = 1;
-        private const uint IMAGE_CURSOR = 2;
+        private IntPtr gdiplusToken;
 
-        private const uint LR_LOADFROMFILE = 0x00000010;
-        private const uint LR_CREATEDIBSECTION = 0x00002000;
+        public ImageLoader()
+        {
+            GdiplusStartupInput startupInput = new GdiplusStartupInput
+            {
+                GdiplusVersion = 1,
+                DebugEventCallback = IntPtr.Zero,
+                SuppressBackgroundThread = false,
+                SuppressExternalCodecs = false
+            };
 
+            int result = GdiplusStartup(
+                out gdiplusToken,
+                ref startupInput,
+                IntPtr.Zero
+            );
 
-        // ========================================================
-        // LOAD
-        // ========================================================
-        //
-        // Lädt ein Bild von der Festplatte.
-        //
-        // Beispiel:
-        //
-        //     IntPtr image = loader.Load("Assets/player.jpg");
-        //
-        // ========================================================
+            if (result != 0)
+            {
+                throw new Exception(
+                    $"GDI+ konnte nicht gestartet werden. Fehlercode: {result}"
+                );
+            }
+        }
 
         public IntPtr Load(string filePath)
         {
-            IntPtr image = LoadImage(
-                IntPtr.Zero,
+            IntPtr bitmap = IntPtr.Zero;
+            IntPtr hBitmap = IntPtr.Zero;
+
+            int result = GdipCreateBitmapFromFile(
                 filePath,
-                IMAGE_BITMAP,
-                0,
-                0,
-                LR_LOADFROMFILE | LR_CREATEDIBSECTION
+                out bitmap
             );
 
-            if (image == IntPtr.Zero)
+            if (result != 0 || bitmap == IntPtr.Zero)
             {
                 throw new Exception(
-                    $"Bild konnte nicht geladen werden: {filePath}"
+                    $"Bild konnte nicht geladen werden: {filePath} " +
+                    $"(GDI+ Fehlercode: {result})"
                 );
             }
 
-            return image;
+            result = GdipCreateHBITMAPFromBitmap(
+                bitmap,
+                out hBitmap,
+                0
+            );
+
+            GdipDisposeImage(bitmap);
+
+            if (result != 0 || hBitmap == IntPtr.Zero)
+            {
+                throw new Exception(
+                    $"HBITMAP konnte nicht erstellt werden: {filePath} " +
+                    $"(GDI+ Fehlercode: {result})"
+                );
+            }
+
+            return hBitmap;
         }
-
-
-        // ========================================================
-        // UNLOAD
-        // ========================================================
-        //
-        // Gibt das geladene Bild wieder frei.
-        //
-        // ========================================================
 
         public void Unload(IntPtr image)
         {
@@ -74,25 +76,60 @@ namespace D007Adventure.Graphics
             }
         }
 
+        public void Dispose()
+        {
+            if (gdiplusToken != IntPtr.Zero)
+            {
+                GdiplusShutdown(gdiplusToken);
+                gdiplusToken = IntPtr.Zero;
+            }
+        }
 
-        // ========================================================
-        // WINDOWS API
-        // ========================================================
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GdiplusStartupInput
+        {
+            public uint GdiplusVersion;
+            public IntPtr DebugEventCallback;
 
-        [DllImport(
-            "user32.dll",
-            CharSet = CharSet.Unicode,
-            SetLastError = true
-        )]
-        private static extern IntPtr LoadImage(
-            IntPtr hInstance,
-            string name,
-            uint type,
-            int width,
-            int height,
-            uint loadFlags
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool SuppressBackgroundThread;
+
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool SuppressExternalCodecs;
+        }
+
+        [DllImport("gdiplus.dll")]
+        private static extern int GdiplusStartup(
+            out IntPtr token,
+            ref GdiplusStartupInput input,
+            IntPtr output
         );
 
+        [DllImport("gdiplus.dll")]
+        private static extern void GdiplusShutdown(
+            IntPtr token
+        );
+
+        [DllImport(
+            "gdiplus.dll",
+            CharSet = CharSet.Unicode
+        )]
+        private static extern int GdipCreateBitmapFromFile(
+            string filename,
+            out IntPtr bitmap
+        );
+
+        [DllImport("gdiplus.dll")]
+        private static extern int GdipCreateHBITMAPFromBitmap(
+            IntPtr bitmap,
+            out IntPtr hBitmap,
+            int background
+        );
+
+        [DllImport("gdiplus.dll")]
+        private static extern int GdipDisposeImage(
+            IntPtr image
+        );
 
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(

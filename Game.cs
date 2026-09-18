@@ -28,13 +28,19 @@ namespace D007Adventure
     public class Game
     {
         // Unser Fenster.
-        private Window window;
+        private readonly Window window;
 
         // Unser 2D-Renderer.
-        private Renderer2D renderer;
+        private readonly Renderer2D renderer;
 
         // Unser Input-System.
-        public D007Adventure.Input.Input input;
+        private readonly D007Adventure.Input.Input input;
+
+        //Unser ImageLoader.
+        private readonly ImageLoader imageLoader;
+
+        //unser MainMenu.
+        private readonly GUI.MMenu mainMenu;
 
         // Unsere Game Loop.
         private GameLoop gameLoop;
@@ -54,8 +60,8 @@ namespace D007Adventure
         {
             // Wir erstellen das Fenster.
             window = new Window(
-                1280,
-                720,
+                1920,
+                1080,
                 "D007 Adventure"
             );
 
@@ -64,6 +70,10 @@ namespace D007Adventure
 
             // Wir erstellen unser Input-System.
             input = new D007Adventure.Input.Input();
+
+            imageLoader = new ImageLoader();
+
+            mainMenu = new GUI.MMenu(imageLoader, input, renderer);
 
             // Wir erstellen die Game Loop.
             gameLoop = new GameLoop(
@@ -83,7 +93,23 @@ namespace D007Adventure
 
         public void Run()
         {
-            gameLoop.Run();
+            while(!window.ShouldClose)
+            {
+                // Wir starten den Frame.
+                window.ProcessMessages();
+
+                //Input aktualisieren
+                input.Update();
+
+                // Wir zeichnen das MainMenu.
+                mainMenu.Draw();
+
+                // Wir aktualisieren die Game Loop.
+                gameLoop.Run();
+
+                // Wir rendern den Frame.
+                renderer.End();
+            }
         }
     }
 }

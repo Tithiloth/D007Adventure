@@ -145,6 +145,59 @@ namespace D007Adventure.Graphics
             DeleteObject(brush);
         }
 
+        public void DrawImage(
+    IntPtr image,
+    int x,
+    int y,
+    int width,
+    int height)
+        {
+            if (image == IntPtr.Zero)
+            {
+                return;
+            }
+
+            if (deviceContext == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr memoryDC = CreateCompatibleDC(
+                deviceContext
+            );
+
+            if (memoryDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr oldObject = SelectObject(
+                memoryDC,
+                image
+            );
+
+            StretchBlt(
+                deviceContext,
+                x,
+                y,
+                width,
+                height,
+                memoryDC,
+                0,
+                0,
+                width,
+                height,
+                SRCCOPY
+            );
+
+            SelectObject(
+                memoryDC,
+                oldObject
+            );
+
+            DeleteDC(memoryDC);
+        }
+
 
         // ========================================================
         // RGB
@@ -230,5 +283,36 @@ namespace D007Adventure.Graphics
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(
             IntPtr objectHandle);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleDC(IntPtr deviceContext);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr SelectObject(
+            IntPtr deviceContext,
+            IntPtr objectHandle
+        );
+
+        [DllImport("gdi32.dll")]
+        private static extern bool StretchBlt(
+            IntPtr destination,
+            int x,
+            int y,
+            int width,
+            int height,
+            IntPtr source,
+            int sourceX,
+            int sourceY,
+            int sourceWidth,
+            int sourceHeight,
+            uint rasterOperation
+        );
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteDC(
+            IntPtr deviceContext
+        );
+
+        private const uint SRCCOPY = 0x00CC0020;
     }
 }
