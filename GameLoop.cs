@@ -1,5 +1,6 @@
 ﻿using D007Adventure.Graphics;
 using D007Adventure.Input;
+using D007Adventure.GUI;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -92,7 +93,6 @@ namespace D007Adventure
                 // ------------------------------------------------
 
                 input.Update();
-
 
                 // ------------------------------------------------
                 // 3. SPIEL AKTUALISIEREN

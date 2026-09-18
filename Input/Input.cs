@@ -20,7 +20,6 @@ namespace D007Adventure.Input
 
     public class Input
     {
-        int MainMenue = 0;
         // --------------------------------------------------------
         // GetAsyncKeyState kommt direkt aus Windows.
         //
