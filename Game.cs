@@ -34,7 +34,7 @@ namespace D007Adventure
         private Renderer2D renderer;
 
         // Unser Input-System.
-        private D007Adventure.Input.Input input;
+        public D007Adventure.Input.Input input;
 
         // Unsere Game Loop.
         private GameLoop gameLoop;

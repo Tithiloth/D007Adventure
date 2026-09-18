@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace D007Adventure.Input
@@ -19,6 +20,7 @@ namespace D007Adventure.Input
 
     public class Input
     {
+        int MainMenue = 0;
         // --------------------------------------------------------
         // GetAsyncKeyState kommt direkt aus Windows.
         //
@@ -121,25 +123,83 @@ namespace D007Adventure.Input
                 case ConsoleKey.B:
                     return 0x42;
 
+                case ConsoleKey.C:
+                    return 0x43;
+
                 case ConsoleKey.D:
                     return 0x44;
 
-                case ConsoleKey.C:
-                    return 0x43;
+                case ConsoleKey.E:
+                    return 0x45;
+
+                case ConsoleKey.F:
+                    return 0x46;
+
+                case ConsoleKey.G:
+                    return 0x47;
+
+                case ConsoleKey.H:
+                    return 0x48;
+
+                case ConsoleKey.I:
+                    return 0x49;
+
+                case ConsoleKey.J:
+                    return 0x4A;
+
+                case ConsoleKey.K:
+                    return 0x4B;
+
+                case ConsoleKey.L:
+                    return 0x4C;
+
+                case ConsoleKey.M:
+                    return 0x4D;
+
+                case ConsoleKey.N:
+                    return 0x4E;
+
+                case ConsoleKey.O:
+                    return 0x4F;
+
+                case ConsoleKey.P:
+                    return 0x50;
+
+                case ConsoleKey.Q:
+                    return 0x51;
+
+                case ConsoleKey.R:
+                    return 0x52;
+
+                case ConsoleKey.S:
+                    return 0x53;
+
+                case ConsoleKey.T:
+                    return 0x54;
+
+                case ConsoleKey.U:
+                    return 0x54;
+
+                case ConsoleKey.V:
+                    return 0x55;
 
                 case ConsoleKey.W:
                     return 0x57;
 
-                case ConsoleKey.S:
-                    return 0x53;
+                case ConsoleKey.X:
+                    return 0x58;
+
+                case ConsoleKey.Y:
+                    return 0x59;
+
+                case ConsoleKey.Z:
+                    return 0x5A;
 
                 case ConsoleKey.Spacebar:
                     return 0x20;
 
                 case ConsoleKey.Tab:
                     return 0x09;
-
-                
 
                 default:
                     return 0;

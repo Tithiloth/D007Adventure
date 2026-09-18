@@ -1,4 +1,4 @@
-﻿ namespace D007Adventure_Plant
+﻿ namespace D007Adventure
     {
         public class PlantData
         {
@@ -9,9 +9,9 @@
             public string CropUse {get;set;}
         }
 
-        public class Program
+        public class Plant
         {
-            public static void Main()
+            public static void PlantDiscription()
             {
                 var sorrowGrapes = new PlantData
                 {
