@@ -94,23 +94,52 @@ namespace D007Adventure.Input
         {
             switch (key)
             {
+                // ========================================================
+                // Sondertasten (ESC, Enter, Shift und Co.)
+                // ========================================================
+                //
+                // Hier sind die System-/ Sondertasten definiert
+                //
+                // ========================================================
                 case ConsoleKey.Escape:
                     return 0x1B;
 
-                case ConsoleKey.W:
-                    return 0x57;
+                // ========================================================
+                // Buchstaben
+                // ========================================================
+                //
+                // Hier sind die Buchstaben definiert
+                //
+                // INFO: ConsoleKey kennt keine unterschiede zwischen 
+                // Groß- und Kleinschreibung!
+                //
+                // ========================================================
 
                 case ConsoleKey.A:
                     return 0x41;
 
-                case ConsoleKey.S:
-                    return 0x53;
+                case ConsoleKey.B:
+                    return 0x42;
 
                 case ConsoleKey.D:
                     return 0x44;
 
+                case ConsoleKey.C:
+                    return 0x43;
+
+                case ConsoleKey.W:
+                    return 0x57;
+
+                case ConsoleKey.S:
+                    return 0x53;
+
                 case ConsoleKey.Spacebar:
                     return 0x20;
+
+                case ConsoleKey.Tab:
+                    return 0x09;
+
+                
 
                 default:
                     return 0;
