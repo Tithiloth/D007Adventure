@@ -1,6 +1,8 @@
 ﻿using D007Adventure.Graphics;
 using D007Adventure.Input;
+using D007Adventure.GUI;
 using System;
+using System.Threading;
 
 namespace D007Adventure
 {
@@ -36,34 +38,24 @@ namespace D007Adventure
         // Unser Input-System.
         private readonly D007Adventure.Input.Input input;
 
-        //Unser ImageLoader.
+        // Unser ImageLoader.
         private readonly ImageLoader imageLoader;
 
-        //unser MainMenu.
-        private readonly GUI.MMenu mainMenu;
+        // Unser MainMenu.
+        private readonly MMenu mainMenu;
 
-        // Unsere Game Loop.
-        private GameLoop gameLoop;
+        // Unser GameLoop-Zustand.
+        private bool gameStarted;
 
 
         // ========================================================
         // KONSTRUKTOR
         // ========================================================
-        //
-        // Dieser wird automatisch aufgerufen, wenn wir schreiben:
-        //
-        //     new Game();
-        //
-        // ========================================================
 
         public Game()
         {
             // Wir erstellen das Fenster.
-            window = new Window(
-                1920,
-                1080,
-                "D007 Adventure"
-            );
+            window = new Window();
 
             // Wir erstellen den Renderer.
             renderer = new Renderer2D(window);
@@ -71,15 +63,20 @@ namespace D007Adventure
             // Wir erstellen unser Input-System.
             input = new D007Adventure.Input.Input();
 
+            // Wir erstellen den ImageLoader.
             imageLoader = new ImageLoader();
 
-            mainMenu = new GUI.MMenu(imageLoader, input, renderer);
+            gameStarted = false;
 
-            // Wir erstellen die Game Loop.
-            gameLoop = new GameLoop(
-                window,
-                renderer,
-                input
+            // Wir erstellen unser MainMenu.
+            mainMenu = new MMenu(
+                imageLoader,
+                input,
+                renderer
+            );
+
+            Logger.Info(
+                "Game initialisiert"
             );
         }
 
@@ -88,28 +85,160 @@ namespace D007Adventure
         // RUN
         // ========================================================
         //
-        // Diese Methode startet das Spiel.
+        // Diese Methode startet die Game Loop.
         // ========================================================
 
         public void Run()
         {
-            while(!window.ShouldClose)
+            while (!window.ShouldClose)
             {
-                // Wir starten den Frame.
+                // ------------------------------------------------
+                // 1. WINDOWS-NACHRICHTEN VERARBEITEN
+                // ------------------------------------------------
+
                 window.ProcessMessages();
 
-                //Input aktualisieren
+                // Wenn Windows während ProcessMessages()
+                // bereits das Ende signalisiert hat, dürfen wir
+                // keinen weiteren Frame mehr zeichnen.
+                if (window.ShouldClose)
+                {
+                    break;
+                }
+
+
+                // ------------------------------------------------
+                // 2. INPUT AKTUALISIEREN
+                // ------------------------------------------------
+
                 input.Update();
 
-                // Wir zeichnen das MainMenu.
-                mainMenu.Draw();
 
-                // Wir aktualisieren die Game Loop.
-                gameLoop.Run();
+                // ------------------------------------------------
+                // 3. ESCAPE PRÜFEN
+                // ------------------------------------------------
 
-                // Wir rendern den Frame.
+                if (input.IsKeyDown(ConsoleKey.Escape))
+                {
+                    Logger.Info(
+                        "Escape gedrückt, Spiel wird beendet."
+                    );
+
+                    window.Quit();
+
+                    // Ganz wichtig:
+                    //
+                    // Nach dem Zerstören des Fensters darf in diesem
+                    // Frame nicht mehr gerendert werden.
+                    break;
+                }
+
+
+                // ------------------------------------------------
+                // 4. RENDERER STARTEN
+                // ------------------------------------------------
+
+                renderer.Begin();
+
+
+                // ------------------------------------------------
+                // 5. SPIEL ZEICHNEN
+                // ------------------------------------------------
+
+                if (!gameStarted)
+                {
+                    // MainMenu zeichnen.
+                    mainMenu.Draw();
+
+
+                    // Prüfen, ob der Spieler das Spiel starten
+                    // möchte.
+                    if (input.IsKeyDown(ConsoleKey.M))
+                    {
+                        gameStarted = true;
+
+                        Logger.Info(
+                            "MainMenü verlassen, Game gestartet."
+                        );
+                    }
+                }
+                else
+                {
+                    DrawGame();
+                }
+
+
+                // ------------------------------------------------
+                // 6. FRAME AUF DEN BILDSCHIRM KOPIEREN
+                // ------------------------------------------------
+
                 renderer.End();
+
+
+                // ------------------------------------------------
+                // 7. FPS BEGRENZEN
+                // ------------------------------------------------
+
+                Thread.Sleep(16);
             }
+        }
+
+
+        // ========================================================
+        // DRAW GAME
+        // ========================================================
+
+        private void DrawGame()
+        {
+            // Hier würde später das eigentliche Spiel laufen.
+            //
+            // Zum Beispiel:
+            // - Spieler zeichnen
+            // - Gegner zeichnen
+            // - Level zeichnen
+            // - Punkte anzeigen
+            // - Sound abspielen
+
+            renderer.DrawRectangle(
+                100,
+                100,
+                200,
+                200
+            );
+        }
+
+
+        // ========================================================
+        // DISPOSE
+        // ========================================================
+        //
+        // Beim Beenden müssen die Ressourcen in der richtigen
+        // Reihenfolge freigegeben werden.
+        //
+        // 1. MainMenu -> HBITMAP freigeben
+        // 2. Renderer -> Backbuffer freigeben
+        // 3. ImageLoader -> GDI+ beenden
+        // 4. Window -> Fenster endgültig schließen
+        //
+        // ========================================================
+
+        public void Dispose()
+        {
+            // Das geladene Hintergrundbild freigeben.
+            mainMenu.Dispose();
+
+            // Backbuffer und GDI-Ressourcen freigeben.
+            renderer.Dispose();
+
+            // GDI+ beenden.
+            imageLoader.Dispose();
+
+            // Fenster endgültig schließen.
+            window.Close();
+
+            Logger.Info(
+                "Game wurde beendet."
+            );
         }
     }
 }

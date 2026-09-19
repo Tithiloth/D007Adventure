@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GameLoop.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Assets\Backgrounds\" />
   </ItemGroup>
 
