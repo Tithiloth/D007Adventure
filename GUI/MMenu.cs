@@ -1,4 +1,5 @@
 ﻿using System;
+using D007Adventure;
 using D007Adventure.Graphics;
 using D007Adventure.Input;
 
@@ -6,12 +7,21 @@ namespace D007Adventure.GUI
 {
     public class MMenu
     {
+        // ========================================================
+        // Sprites
+        // ========================================================
         private IntPtr background;
+        private IntPtr startbutton;
+        private IntPtr optionsbutton;
+        private IntPtr exitbutton;
+
+        // ========================================================
+        // Abhängigkeiten
+        // ========================================================
 
         private readonly ImageLoader imageLoader;
         private readonly D007Adventure.Input.Input input;
         private readonly Renderer2D renderer;
-
 
         // ========================================================
         // KONSTRUKTOR
@@ -29,7 +39,6 @@ namespace D007Adventure.GUI
             Logger.Info(
                 "MainMenü initialisiert"
             );
-
 
             // ----------------------------------------------------
             // Hintergrundbild laden.
@@ -52,8 +61,19 @@ namespace D007Adventure.GUI
                     "Hintergrundbild für das MainMenü erfolgreich geladen"
                 );
             }
-        }
 
+            startbutton = imageLoader.Load(
+                "Assets/Buttons/StartButton.png"
+            );
+
+            optionsbutton = imageLoader.Load(
+                "Assets/Buttons/OptionsButton.png"
+            );
+
+            exitbutton = imageLoader.Load(
+                "Assets/Buttons/ExitButton.png"
+            );
+        }
 
         // ========================================================
         // DRAW
@@ -78,8 +98,34 @@ namespace D007Adventure.GUI
                 1920,
                 1080
             );
-        }
 
+            // Startbutton zeichnen.
+            renderer.DrawImage(
+                startbutton,
+                1600,
+                400,
+                256,
+                64
+            );
+
+            // Optionsbutton zeichnen.
+            renderer.DrawImage(
+                optionsbutton,
+                1600,
+                500,
+                256,
+                64
+            );
+
+            // Exitbutton zeichnen.
+            renderer.DrawImage(
+                exitbutton,
+                1600,
+                600,
+                256,
+                64
+            );
+        }
 
         // ========================================================
         // DISPOSE

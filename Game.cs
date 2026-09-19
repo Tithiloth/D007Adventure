@@ -47,6 +47,9 @@ namespace D007Adventure
         // Unser GameLoop-Zustand.
         private bool gameStarted;
 
+        // Maus-Input-System.
+        private Mouse mouse;
+
 
         // ========================================================
         // KONSTRUKTOR
@@ -65,6 +68,9 @@ namespace D007Adventure
 
             // Wir erstellen den ImageLoader.
             imageLoader = new ImageLoader();
+
+            // Wir erstellen das Maus-Input-System.
+            mouse = new Mouse(window);
 
             gameStarted = false;
 
@@ -106,13 +112,12 @@ namespace D007Adventure
                     break;
                 }
 
-
                 // ------------------------------------------------
                 // 2. INPUT AKTUALISIEREN
                 // ------------------------------------------------
 
                 input.Update();
-
+                mouse.Update();
 
                 // ------------------------------------------------
                 // 3. ESCAPE PRÜFEN
@@ -133,13 +138,11 @@ namespace D007Adventure
                     break;
                 }
 
-
                 // ------------------------------------------------
                 // 4. RENDERER STARTEN
                 // ------------------------------------------------
 
                 renderer.Begin();
-
 
                 // ------------------------------------------------
                 // 5. SPIEL ZEICHNEN
@@ -153,13 +156,26 @@ namespace D007Adventure
 
                     // Prüfen, ob der Spieler das Spiel starten
                     // möchte.
-                    if (input.IsKeyDown(ConsoleKey.M))
+                    if (mouse.LeftButtonPressed && 
+                        mouse.X >= 1600 && 
+                        mouse.X <= 1856 && 
+                        mouse.Y >= 400 && 
+                        mouse.Y <= 464)
                     {
                         gameStarted = true;
 
                         Logger.Info(
                             "MainMenü verlassen, Game gestartet."
                         );
+                    }
+
+                    if (mouse.LeftButtonPressed &&
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 600 &&
+                            mouse.Y <= 664)
+                    {
+                        window.Quit();
                     }
                 }
                 else
