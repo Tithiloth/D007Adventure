@@ -43,7 +43,6 @@ namespace D007Adventure.Utils
                 PropertyNameCaseInsensitive = true
             };
 
-
         // ========================================================
         // LOAD
         // ========================================================
@@ -80,7 +79,6 @@ namespace D007Adventure.Utils
                 );
             }
 
-
             try
             {
                 // Die komplette JSON-Datei einlesen.
@@ -103,7 +101,6 @@ namespace D007Adventure.Utils
                         $"Die JSON-Datei konnte nicht geladen werden: {path}"
                     );
                 }
-
 
                 Logger.Info(
                     $"JSON geladen: {path}"
@@ -128,7 +125,6 @@ namespace D007Adventure.Utils
                 throw;
             }
         }
-
 
         // ========================================================
         // SAVE
@@ -157,14 +153,12 @@ namespace D007Adventure.Utils
                 );
             }
 
-
             // ----------------------------------------------------
             // Übergeordneten Ordner ermitteln.
             // ----------------------------------------------------
 
             string? directory =
                 Path.GetDirectoryName(path);
-
 
             // ----------------------------------------------------
             // Falls der Ordner noch nicht existiert,
@@ -210,7 +204,6 @@ namespace D007Adventure.Utils
             }
         }
 
-
         // ========================================================
         // EXISTS
         // ========================================================
@@ -225,7 +218,6 @@ namespace D007Adventure.Utils
             return File.Exists(path);
         }
 
-
         // ========================================================
         // DELETE
         // ========================================================
@@ -239,7 +231,6 @@ namespace D007Adventure.Utils
             {
                 return;
             }
-
 
             File.Delete(path);
 

@@ -47,9 +47,12 @@ namespace D007Adventure
         // Unser GameLoop-Zustand.
         private bool gameStarted;
 
+        // Weitere Zustände, die wir später für Optionen oder andere Menüs nutzen können.
+        private bool showMainMenu = true;
+        private bool showOptionsMenu = false;
+
         // Maus-Input-System.
         private Mouse mouse;
-
 
         // ========================================================
         // KONSTRUKTOR
@@ -125,17 +128,15 @@ namespace D007Adventure
 
                 if (input.IsKeyDown(ConsoleKey.Escape))
                 {
-                    Logger.Info(
-                        "Escape gedrückt, Spiel wird beendet."
-                    );
-
-                    window.Quit();
-
-                    // Ganz wichtig:
-                    //
-                    // Nach dem Zerstören des Fensters darf in diesem
-                    // Frame nicht mehr gerendert werden.
-                    break;
+                    // Zurück zum MainMenu, wenn das Spiel gestartet ist.
+                    if (gameStarted)
+                    {
+                        gameStarted = false;
+                        Logger.Info(
+                            "Game verlassen, zurück zum MainMenü."
+                        );
+                    }
+                    mainMenu.Draw();
                 }
 
                 // ------------------------------------------------
@@ -150,9 +151,26 @@ namespace D007Adventure
 
                 if (!gameStarted)
                 {
-                    // MainMenu zeichnen.
-                    mainMenu.Draw();
-
+                    // Menü-Zustand prüfen
+                    if (showOptionsMenu)
+                    {
+                        // Hier würden die Einstellungen gezeichnet werden.
+                        // Zum Beispiel:
+                        // - Lautstärke
+                        // - Auflösung
+                        // - Steuerung
+                        // - Zurück-Button
+                        renderer.DrawRectangle(
+                            100,
+                            100,
+                            200,
+                            200
+                        );
+                    }
+                    else if (showMainMenu)
+                    {
+                        mainMenu.Draw();
+                    }
 
                     // Prüfen, ob der Spieler das Spiel starten
                     // möchte.
@@ -169,6 +187,21 @@ namespace D007Adventure
                         );
                     }
 
+                    // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
+                    if (mouse.LeftButtonPressed &&
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 500 &&
+                            mouse.Y <= 564)
+                    {
+                        showOptionsMenu = true;
+                        showMainMenu = false;
+                        Logger.Info(
+                            "Einstellungen geöffnet."
+                        );
+                    }
+
+                    // Prüfen, ob der Spieler das Spiel beenden
                     if (mouse.LeftButtonPressed &&
                             mouse.X >= 1600 &&
                             mouse.X <= 1856 &&
@@ -176,7 +209,25 @@ namespace D007Adventure
                             mouse.Y <= 664)
                     {
                         window.Quit();
-                    }
+                    }  
+                    
+                    //// Optionen-Zustand prüfen.
+                    //if (options == 1)
+                    //{
+                    //    MainMenu = 0;
+                    //    // Hier würden die Einstellungen gezeichnet werden.
+                    //    // Zum Beispiel:
+                    //    // - Lautstärke
+                    //    // - Auflösung
+                    //    // - Steuerung
+                    //    // - Zurück-Button
+                    //    renderer.DrawRectangle(
+                    //        100,
+                    //        100,
+                    //        200,
+                    //        200
+                    //    );
+                    //}
                 }
                 else
                 {
