@@ -12,6 +12,7 @@ namespace D007Adventure.GUI
         // ========================================================
         private IntPtr background;
         private IntPtr startbutton;
+        private IntPtr loadbutton;
         private IntPtr optionsbutton;
         private IntPtr exitbutton;
 
@@ -61,6 +62,10 @@ namespace D007Adventure.GUI
                     "Hintergrundbild für das MainMenü erfolgreich geladen"
                 );
             }
+
+            // ----------------------------------------------------
+            // Buttons laden.
+            // ----------------------------------------------------
 
             startbutton = imageLoader.Load(
                 "Assets/Buttons/StartButton.png"

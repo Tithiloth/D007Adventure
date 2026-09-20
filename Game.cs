@@ -44,12 +44,20 @@ namespace D007Adventure
         // Unser MainMenu.
         private readonly MMenu mainMenu;
 
+        // Unser OptionsMenu.
+        private readonly Options options;
+
+        // Unser SoundOptionsMenu.
+        private readonly SoundOptions soundOptions;
+
         // Unser GameLoop-Zustand.
         private bool gameStarted;
 
         // Weitere Zustände, die wir später für Optionen oder andere Menüs nutzen können.
         private bool showMainMenu = true;
         private bool showOptionsMenu = false;
+        private bool showSoundOptionsMenu = false;
+        private bool showKeybindingsMenu = false;
 
         // Maus-Input-System.
         private Mouse mouse;
@@ -82,13 +90,24 @@ namespace D007Adventure
                 imageLoader,
                 input,
                 renderer
-            );
+                );
+
+            options = new Options(
+                imageLoader,
+                input,
+                renderer
+                );
+
+            soundOptions = new SoundOptions(
+                imageLoader,
+                input,
+                renderer
+                );
 
             Logger.Info(
                 "Game initialisiert"
             );
         }
-
 
         // ========================================================
         // RUN
@@ -136,6 +155,31 @@ namespace D007Adventure
                             "Game verlassen, zurück zum MainMenü."
                         );
                     }
+                    else if (showOptionsMenu)
+                    {
+                        showOptionsMenu = false;
+                        showMainMenu = true;
+                        Logger.Info(
+                            "Einstellungen verlassen, zurück zum MainMenü."
+                        );
+                    }
+                    //else if (showSoundOptionsMenu)
+                    //{
+                    //    showSoundOptionsMenu = false;
+                    //    showOptionsMenu = true;
+                    //    showMainMenu = false;
+                    //    Logger.Info(
+                    //        "Soundeinstellungen verlassen, zurück zu den Einstellungen."
+                    //    );
+                    //}
+                    else if (showKeybindingsMenu)
+                    {
+                        showKeybindingsMenu = false;
+                        showOptionsMenu = true;
+                        Logger.Info(
+                            "Tastatureinstellungen verlassen, zurück zu den Einstellungen."
+                        );
+                    }
                     mainMenu.Draw();
                 }
 
@@ -154,80 +198,91 @@ namespace D007Adventure
                     // Menü-Zustand prüfen
                     if (showOptionsMenu)
                     {
-                        // Hier würden die Einstellungen gezeichnet werden.
+                        if(mouse.LeftButtonPressed &&
+                        mouse.X >= 1600 &&
+                        mouse.X <= 1856 &&
+                        mouse.Y >= 500 &&
+                        mouse.Y <= 564)
+                        {
+                            showSoundOptionsMenu = true;
+                            showOptionsMenu = false;
+                            Logger.Info(
+                                "Soundeinstellungen geöffnet."
+                            );
+                        }
+                        // Prüfen, ob der Spieler die Tastatureinstellungen öffnen möchte.
+                        if (mouse.LeftButtonPressed &&
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 600 &&
+                            mouse.Y <= 664)
+                        {
+                            showOptionsMenu = true;
+                            showMainMenu = false;
+                            Logger.Info(
+                                "Tastatureinstellungen geöffnet."
+                            );
+                        }
+                        options.Draw();
+                    }
+                    else if (showSoundOptionsMenu)
+                    {
+                        // Hier könnte später der Code für das Zeichnen des Sound-Options-Menüs stehen.
                         // Zum Beispiel:
-                        // - Lautstärke
-                        // - Auflösung
-                        // - Steuerung
-                        // - Zurück-Button
-                        renderer.DrawRectangle(
-                            100,
-                            100,
-                            200,
-                            200
-                        );
+                        soundOptions.Draw();
+                    }
+                    else if (showKeybindingsMenu)
+                    {
+                        // Hier könnte später der Code für das Zeichnen des Keybindings-Menüs stehen.
+                        // Zum Beispiel:
+                        // keybindingsMenu.Draw();
                     }
                     else if (showMainMenu)
                     {
                         mainMenu.Draw();
                     }
 
-                    // Prüfen, ob der Spieler das Spiel starten
-                    // möchte.
-                    if (mouse.LeftButtonPressed && 
-                        mouse.X >= 1600 && 
-                        mouse.X <= 1856 && 
-                        mouse.Y >= 400 && 
-                        mouse.Y <= 464)
+                    if (showMainMenu)
                     {
-                        gameStarted = true;
+                        // Prüfen, ob der Spieler das Spiel starten
+                        // möchte.
+                        if (mouse.LeftButtonPressed &&
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 400 &&
+                            mouse.Y <= 464)
+                        {
+                            gameStarted = true;
 
-                        Logger.Info(
-                            "MainMenü verlassen, Game gestartet."
-                        );
-                    }
+                            Logger.Info(
+                                "MainMenü verlassen, Game gestartet."
+                            );
+                        }
 
-                    // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
-                    if (mouse.LeftButtonPressed &&
+                        // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
+                        if (mouse.LeftButtonPressed &&
                             mouse.X >= 1600 &&
                             mouse.X <= 1856 &&
                             mouse.Y >= 500 &&
                             mouse.Y <= 564)
-                    {
-                        showOptionsMenu = true;
-                        showMainMenu = false;
-                        Logger.Info(
-                            "Einstellungen geöffnet."
-                        );
-                    }
+                        {
+                            showOptionsMenu = true;
+                            showMainMenu = false;
+                            Logger.Info(
+                                "Einstellungen geöffnet."
+                            );
+                        }
 
-                    // Prüfen, ob der Spieler das Spiel beenden
-                    if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
-                            mouse.Y >= 600 &&
-                            mouse.Y <= 664)
-                    {
-                        window.Quit();
-                    }  
-                    
-                    //// Optionen-Zustand prüfen.
-                    //if (options == 1)
-                    //{
-                    //    MainMenu = 0;
-                    //    // Hier würden die Einstellungen gezeichnet werden.
-                    //    // Zum Beispiel:
-                    //    // - Lautstärke
-                    //    // - Auflösung
-                    //    // - Steuerung
-                    //    // - Zurück-Button
-                    //    renderer.DrawRectangle(
-                    //        100,
-                    //        100,
-                    //        200,
-                    //        200
-                    //    );
-                    //}
+                        // Prüfen, ob der Spieler das Spiel beenden
+                        if (mouse.LeftButtonPressed &&
+                                mouse.X >= 1600 &&
+                                mouse.X <= 1856 &&
+                                mouse.Y >= 600 &&
+                                mouse.Y <= 664)
+                        {
+                            window.Quit();
+                        }
+                    }
                 }
                 else
                 {
