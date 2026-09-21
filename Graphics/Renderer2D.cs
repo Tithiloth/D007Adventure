@@ -29,7 +29,19 @@ namespace D007Adventure.Graphics
     {
         private readonly Window window;
 
-        private IntPtr deviceContext;
+        // Device Context des eigentlichen Fensters.
+        private IntPtr windowDC;
+
+        // Device Context unseres Backbuffers.
+        private IntPtr backBufferDC;
+
+        // Bitmap, auf die unser Backbuffer zeichnet.
+        private IntPtr backBufferBitmap;
+
+        // Bitmap, die vor unserem Backbuffer im DC ausgewählt war.
+        //
+        // Diese muss vor DeleteDC wieder eingesetzt werden.
+        private IntPtr oldBackBufferBitmap;
 
 
         // ========================================================
@@ -39,6 +51,8 @@ namespace D007Adventure.Graphics
         public Renderer2D(Window window)
         {
             this.window = window;
+
+            CreateBackBuffer();
         }
 
 
@@ -48,18 +62,26 @@ namespace D007Adventure.Graphics
         //
         // Hier wird ein neuer Frame vorbereitet.
         //
-        // Der Bildschirm wird zuerst mit der Hintergrundfarbe
+        // Der Backbuffer wird zuerst mit der Hintergrundfarbe
         // Hellblau gefüllt.
         //
         // ========================================================
 
         public void Begin()
         {
-            deviceContext = GetDC(window.Handle);
+            if (backBufferDC == IntPtr.Zero)
+            {
+                return;
+            }
 
-            IntPtr backgroundBrush = CreateSolidBrush(
+            IntPtr brush = CreateSolidBrush(
                 RGB(173, 216, 230)
             );
+
+            if (brush == IntPtr.Zero)
+            {
+                return;
+            }
 
             RECT rectangle = new RECT
             {
@@ -70,12 +92,12 @@ namespace D007Adventure.Graphics
             };
 
             FillRect(
-                deviceContext,
+                backBufferDC,
                 ref rectangle,
-                backgroundBrush
+                brush
             );
 
-            DeleteObject(backgroundBrush);
+            DeleteObject(brush);
         }
 
 
@@ -85,21 +107,53 @@ namespace D007Adventure.Graphics
         //
         // Hier wird der aktuelle Frame beendet.
         //
-        // Der Device Context wird wieder freigegeben.
+        // Der Inhalt des Backbuffers wird auf das Fenster
+        // kopiert.
         //
         // ========================================================
 
         public void End()
         {
-            if (deviceContext != IntPtr.Zero)
+            if (backBufferDC == IntPtr.Zero)
             {
-                ReleaseDC(
-                    window.Handle,
-                    deviceContext
-                );
-
-                deviceContext = IntPtr.Zero;
+                return;
             }
+
+            // Falls das Fenster bereits zerstört wurde,
+            // dürfen wir nicht mehr versuchen, einen DC zu holen.
+            if (window.Handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            windowDC = GetDC(
+                window.Handle
+            );
+
+            if (windowDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            BitBlt(
+                windowDC,
+                0,
+                0,
+                window.Width,
+                window.Height,
+                backBufferDC,
+                0,
+                0,
+                SRCCOPY
+            );
+
+            ReleaseDC(
+                window.Handle,
+                windowDC
+            );
+
+            // Der DC wurde bereits freigegeben.
+            windowDC = IntPtr.Zero;
         }
 
 
@@ -124,9 +178,19 @@ namespace D007Adventure.Graphics
             int width,
             int height)
         {
+            if (backBufferDC == IntPtr.Zero)
+            {
+                return;
+            }
+
             IntPtr brush = CreateSolidBrush(
                 RGB(255, 0, 0)
             );
+
+            if (brush == IntPtr.Zero)
+            {
+                return;
+            }
 
             RECT rectangle = new RECT
             {
@@ -137,12 +201,247 @@ namespace D007Adventure.Graphics
             };
 
             FillRect(
-                deviceContext,
+                backBufferDC,
                 ref rectangle,
                 brush
             );
 
             DeleteObject(brush);
+        }
+
+
+        // ========================================================
+        // DRAW IMAGE
+        // ========================================================
+        //
+        // Zeichnet ein geladenes HBITMAP in den Backbuffer.
+        //
+        // ========================================================
+
+        public void DrawImage(
+            IntPtr image,
+            int x,
+            int y,
+            int width,
+            int height)
+        {
+            if (image == IntPtr.Zero)
+            {
+                return;
+            }
+
+            if (backBufferDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr memoryDC = CreateCompatibleDC(
+                backBufferDC
+            );
+
+            if (memoryDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr oldObject = SelectObject(
+                memoryDC,
+                image
+            );
+
+            if (oldObject == IntPtr.Zero)
+            {
+                DeleteDC(memoryDC);
+                return;
+            }
+
+            StretchBlt(
+                backBufferDC,
+                x,
+                y,
+                width,
+                height,
+                memoryDC,
+                0,
+                0,
+                width,
+                height,
+                SRCCOPY
+            );
+
+            // Ursprüngliches Objekt wieder einsetzen.
+            SelectObject(
+                memoryDC,
+                oldObject
+            );
+
+            // Temporären Memory-DC freigeben.
+            DeleteDC(memoryDC);
+        }
+
+
+        // ========================================================
+        // CREATE BACK BUFFER
+        // ========================================================
+        //
+        // Der Backbuffer sorgt dafür, dass wir nicht direkt
+        // auf das sichtbare Fenster zeichnen.
+        //
+        // Dadurch können wir einen kompletten Frame vorbereiten
+        // und ihn anschließend mit BitBlt auf einmal anzeigen.
+        //
+        // ========================================================
+
+        private void CreateBackBuffer()
+        {
+            if (window.Handle == IntPtr.Zero)
+            {
+                throw new Exception(
+                    "Das Fenster besitzt keinen gültigen Handle."
+                );
+            }
+
+            IntPtr screenDC = GetDC(
+                window.Handle
+            );
+
+            if (screenDC == IntPtr.Zero)
+            {
+                throw new Exception(
+                    "Screen Device Context konnte nicht erstellt werden."
+                );
+            }
+
+            backBufferDC = CreateCompatibleDC(
+                screenDC
+            );
+
+            if (backBufferDC == IntPtr.Zero)
+            {
+                ReleaseDC(
+                    window.Handle,
+                    screenDC
+                );
+
+                throw new Exception(
+                    "Back Buffer Device Context konnte nicht erstellt werden."
+                );
+            }
+
+            backBufferBitmap = CreateCompatibleBitmap(
+                screenDC,
+                window.Width,
+                window.Height
+            );
+
+            if (backBufferBitmap == IntPtr.Zero)
+            {
+                DeleteDC(backBufferDC);
+                backBufferDC = IntPtr.Zero;
+
+                ReleaseDC(
+                    window.Handle,
+                    screenDC
+                );
+
+                throw new Exception(
+                    "Back Buffer Bitmap konnte nicht erstellt werden."
+                );
+            }
+
+            oldBackBufferBitmap = SelectObject(
+                backBufferDC,
+                backBufferBitmap
+            );
+
+            if (oldBackBufferBitmap == IntPtr.Zero)
+            {
+                DeleteObject(backBufferBitmap);
+                backBufferBitmap = IntPtr.Zero;
+
+                DeleteDC(backBufferDC);
+                backBufferDC = IntPtr.Zero;
+
+                ReleaseDC(
+                    window.Handle,
+                    screenDC
+                );
+
+                throw new Exception(
+                    "Alte Back Buffer Bitmap konnte nicht ausgewählt werden."
+                );
+            }
+
+            ReleaseDC(
+                window.Handle,
+                screenDC
+            );
+        }
+
+
+        // ========================================================
+        // DISPOSE
+        // ========================================================
+        //
+        // Hier werden alle nativen GDI-Ressourcen des Renderers
+        // freigegeben.
+        //
+        // Die Reihenfolge ist wichtig:
+        //
+        // 1. Alte Bitmap wieder auswählen
+        // 2. Backbuffer-DC löschen
+        // 3. Backbuffer-Bitmap löschen
+        //
+        // ========================================================
+
+        public void Dispose()
+        {
+            if (windowDC != IntPtr.Zero)
+            {
+                if (window.Handle != IntPtr.Zero)
+                {
+                    ReleaseDC(
+                        window.Handle,
+                        windowDC
+                    );
+                }
+
+                windowDC = IntPtr.Zero;
+            }
+
+
+            if (backBufferDC != IntPtr.Zero)
+            {
+                // Die vorherige Bitmap wieder einsetzen.
+                //
+                // Eine Bitmap darf nicht gelöscht werden,
+                // solange sie noch im DC ausgewählt ist.
+                if (oldBackBufferBitmap != IntPtr.Zero)
+                {
+                    SelectObject(
+                        backBufferDC,
+                        oldBackBufferBitmap
+                    );
+
+                    oldBackBufferBitmap = IntPtr.Zero;
+                }
+
+                DeleteDC(
+                    backBufferDC
+                );
+
+                backBufferDC = IntPtr.Zero;
+            }
+
+
+            if (backBufferBitmap != IntPtr.Zero)
+            {
+                DeleteObject(
+                    backBufferBitmap
+                );
+
+                backBufferBitmap = IntPtr.Zero;
+            }
         }
 
 
@@ -175,15 +474,6 @@ namespace D007Adventure.Graphics
 
         // ========================================================
         // RECT
-        // ========================================================
-        //
-        // Beschreibt ein Rechteck auf dem Bildschirm.
-        //
-        // Left   = linke Seite
-        // Top    = obere Seite
-        // Right  = rechte Seite
-        // Bottom = untere Seite
-        //
         // ========================================================
 
         [StructLayout(LayoutKind.Sequential)]
@@ -230,5 +520,59 @@ namespace D007Adventure.Graphics
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(
             IntPtr objectHandle);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleDC(
+            IntPtr deviceContext);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleBitmap(
+            IntPtr deviceContext,
+            int width,
+            int height);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr SelectObject(
+            IntPtr deviceContext,
+            IntPtr objectHandle);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern bool StretchBlt(
+            IntPtr destination,
+            int x,
+            int y,
+            int width,
+            int height,
+            IntPtr source,
+            int sourceX,
+            int sourceY,
+            int sourceWidth,
+            int sourceHeight,
+            uint rasterOperation);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteDC(
+            IntPtr deviceContext);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern bool BitBlt(
+            IntPtr destination,
+            int x,
+            int y,
+            int width,
+            int height,
+            IntPtr source,
+            int sourceX,
+            int sourceY,
+            uint rasterOperation);
+
+
+        private const uint SRCCOPY = 0x00CC0020;
     }
 }
