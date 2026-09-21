@@ -23,6 +23,7 @@ namespace D007Adventure.GUI
             this.imageLoader = imageLoader;
             this.input = input;
             this.renderer = renderer;
+
             Logger.Info(
                 "SoundOptions initialisiert"
             );
@@ -48,7 +49,7 @@ namespace D007Adventure.GUI
             if(background == IntPtr.Zero)
             {
                 Logger.Error(
-                    "Fehler beim Zeichnen des Hintergrundbildes für SoundOptions"
+                    "Hintergrundbild ist null, kann nicht gezeichnet werden"
                 );
                 return;
             }
@@ -57,6 +58,11 @@ namespace D007Adventure.GUI
                 background,
                 0, 0, 1920, 1080
             );
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }

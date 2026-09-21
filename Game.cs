@@ -47,6 +47,8 @@ namespace D007Adventure
         // Unser OptionsMenu.
         private readonly Options options;
 
+        private readonly GraphicsOptions graphicsOptions;
+
         // Unser SoundOptionsMenu.
         private readonly SoundOptions soundOptions;
 
@@ -56,6 +58,7 @@ namespace D007Adventure
         // Weitere Zustände, die wir später für Optionen oder andere Menüs nutzen können.
         private bool showMainMenu = true;
         private bool showOptionsMenu = false;
+        private bool showGraphicsMenu = false;
         private bool showSoundOptionsMenu = false;
         private bool showKeybindingsMenu = false;
 
@@ -98,6 +101,12 @@ namespace D007Adventure
                 renderer
                 );
 
+            graphicsOptions = new GraphicsOptions
+                (imageLoader,
+                input,
+                renderer
+                );
+
             soundOptions = new SoundOptions(
                 imageLoader,
                 input,
@@ -106,7 +115,7 @@ namespace D007Adventure
 
             Logger.Info(
                 "Game initialisiert"
-            );
+                );
         }
 
         // ========================================================
@@ -153,32 +162,42 @@ namespace D007Adventure
                         gameStarted = false;
                         Logger.Info(
                             "Game verlassen, zurück zum MainMenü."
-                        );
+                            );
                     }
                     else if (showOptionsMenu)
                     {
                         showOptionsMenu = false;
+                        showSoundOptionsMenu = false;
                         showMainMenu = true;
                         Logger.Info(
                             "Einstellungen verlassen, zurück zum MainMenü."
-                        );
+                            );
                     }
-                    //else if (showSoundOptionsMenu)
-                    //{
-                    //    showSoundOptionsMenu = false;
-                    //    showOptionsMenu = true;
-                    //    showMainMenu = false;
-                    //    Logger.Info(
-                    //        "Soundeinstellungen verlassen, zurück zu den Einstellungen."
-                    //    );
-                    //}
+                    else if (showGraphicsMenu)
+                    {
+                        showGraphicsMenu = false;
+                        showOptionsMenu = true;
+                        showMainMenu = false;
+                        Logger.Info(
+                            "Grafikeisntellungen verlassen, zurück zu den Einstellungen."
+                            );
+                    }
+                    else if (showSoundOptionsMenu)
+                    {
+                        showSoundOptionsMenu = false;
+                        showOptionsMenu = true;
+                        showMainMenu = false;
+                        Logger.Info(
+                            "Soundeinstellungen verlassen, zurück zu den Einstellungen."
+                            );
+                    }
                     else if (showKeybindingsMenu)
                     {
                         showKeybindingsMenu = false;
                         showOptionsMenu = true;
                         Logger.Info(
                             "Tastatureinstellungen verlassen, zurück zu den Einstellungen."
-                        );
+                            );
                     }
                     mainMenu.Draw();
                 }
@@ -198,37 +217,63 @@ namespace D007Adventure
                     // Menü-Zustand prüfen
                     if (showOptionsMenu)
                     {
+                        // Prüfen, oder der Spieler die Grafikeinstellungen öffnen möchte.
+                        if(mouse.LeftButtonPressed && 
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 400 &&
+                            mouse.Y <= 464)
+                        {
+                            showOptionsMenu = false;
+                            showGraphicsMenu = true;
+                            Logger.Info(
+                                "Grafikeinstellungen geöffnet."
+                                );
+                        }
+                        // Prüfen, ob der Spieler die Soundeinstellungen öffnen möchte.
                         if(mouse.LeftButtonPressed &&
-                        mouse.X >= 1600 &&
-                        mouse.X <= 1856 &&
-                        mouse.Y >= 500 &&
-                        mouse.Y <= 564)
+                            mouse.X >= 1600 &&
+                            mouse.X <= 1856 &&
+                            mouse.Y >= 500 &&
+                            mouse.Y <= 564)
                         {
                             showSoundOptionsMenu = true;
                             showOptionsMenu = false;
                             Logger.Info(
                                 "Soundeinstellungen geöffnet."
-                            );
+                                );
                         }
                         // Prüfen, ob der Spieler die Tastatureinstellungen öffnen möchte.
                         if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
-                            mouse.Y >= 600 &&
-                            mouse.Y <= 664)
+                                mouse.X >= 1600 &&
+                                mouse.X <= 1856 &&
+                                mouse.Y >= 600 &&
+                                mouse.Y <= 664)
                         {
                             showOptionsMenu = true;
                             showMainMenu = false;
                             Logger.Info(
                                 "Tastatureinstellungen geöffnet."
-                            );
+                                );
                         }
                         options.Draw();
                     }
+                    else if (showGraphicsMenu)
+                    {
+                        graphicsOptions.Draw();
+                       
+                        if(mouse.LeftButtonPressed &&
+                            mouse.X >= 457 &&
+                            mouse.X <= 521 &&
+                            mouse.Y >= 201 &&
+                            mouse.Y <= 264)
+                        {
+                            
+                        }
+                    }
                     else if (showSoundOptionsMenu)
                     {
-                        // Hier könnte später der Code für das Zeichnen des Sound-Options-Menüs stehen.
-                        // Zum Beispiel:
+                        // Hier steht der Code für das Zeichnen des Sound-Options-Menüs.
                         soundOptions.Draw();
                     }
                     else if (showKeybindingsMenu)
@@ -239,6 +284,7 @@ namespace D007Adventure
                     }
                     else if (showMainMenu)
                     {
+                        // Hier steht der Code für das Zeichnen des Hauptmenüs.
                         mainMenu.Draw();
                     }
 
@@ -256,7 +302,7 @@ namespace D007Adventure
 
                             Logger.Info(
                                 "MainMenü verlassen, Game gestartet."
-                            );
+                                );
                         }
 
                         // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
@@ -270,7 +316,7 @@ namespace D007Adventure
                             showMainMenu = false;
                             Logger.Info(
                                 "Einstellungen geöffnet."
-                            );
+                                );
                         }
 
                         // Prüfen, ob der Spieler das Spiel beenden
