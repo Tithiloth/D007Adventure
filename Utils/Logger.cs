@@ -293,9 +293,7 @@ namespace D007Adventure
                 //
                 // Sonst würde Logger.Error() wieder versuchen,
                 // in die kaputte Log-Datei zu schreiben.
-                Console.WriteLine(
-                    $"[LOGGER FEHLER] Log-Datei konnte nicht geschrieben werden: {exception.Message}"
-                );
+                Console.WriteLine($"[LOGGER FEHLER] Log-Datei konnte nicht geschrieben werden: {exception.Message}");
             }
         }
     }
