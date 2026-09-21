@@ -63,7 +63,7 @@ namespace D007Adventure
         private bool showKeybindingsMenu = false;
 
         // Maus-Input-System.
-        private Mouse mouse;
+        private readonly Mouse mouse;
 
         // ========================================================
         // KONSTRUKTOR
@@ -154,7 +154,7 @@ namespace D007Adventure
                 // 3. ESCAPE PRÜFEN
                 // ------------------------------------------------
 
-                if (input.IsKeyDown(ConsoleKey.Escape))
+                if (input.IsKeyPressed(ConsoleKey.Escape))
                 {
                     // Zurück zum MainMenu, wenn das Spiel gestartet ist.
                     if (gameStarted)
@@ -199,7 +199,6 @@ namespace D007Adventure
                             "Tastatureinstellungen verlassen, zurück zu den Einstellungen."
                             );
                     }
-                    mainMenu.Draw();
                 }
 
                 // ------------------------------------------------
@@ -231,7 +230,7 @@ namespace D007Adventure
                                 );
                         }
                         // Prüfen, ob der Spieler die Soundeinstellungen öffnen möchte.
-                        if(mouse.LeftButtonPressed &&
+                        else if(mouse.LeftButtonPressed &&
                             mouse.X >= 1600 &&
                             mouse.X <= 1856 &&
                             mouse.Y >= 500 &&
@@ -244,14 +243,16 @@ namespace D007Adventure
                                 );
                         }
                         // Prüfen, ob der Spieler die Tastatureinstellungen öffnen möchte.
-                        if (mouse.LeftButtonPressed &&
+                        else if (mouse.LeftButtonPressed &&
                                 mouse.X >= 1600 &&
                                 mouse.X <= 1856 &&
                                 mouse.Y >= 600 &&
                                 mouse.Y <= 664)
                         {
-                            showOptionsMenu = true;
+                            showOptionsMenu = false;
                             showMainMenu = false;
+                            showKeybindingsMenu = true;
+
                             Logger.Info(
                                 "Tastatureinstellungen geöffnet."
                                 );
@@ -263,12 +264,12 @@ namespace D007Adventure
                         graphicsOptions.Draw();
                        
                         if(mouse.LeftButtonPressed &&
-                            mouse.X >= 457 &&
-                            mouse.X <= 521 &&
+                            mouse.X >= 768 &&
+                            mouse.X <= 832 &&
                             mouse.Y >= 201 &&
                             mouse.Y <= 264)
                         {
-                            
+                            graphicsOptions.pullDown = true;
                         }
                     }
                     else if (showSoundOptionsMenu)

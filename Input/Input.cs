@@ -20,6 +20,21 @@ namespace D007Adventure.Input
 
     public class Input
     {
+
+        // --------------------------------------------------------
+        // Speichert den Tastenzustand des vorherigen Frames.
+        //
+        // Dadurch können wir unterscheiden zwischen:
+        //
+        // IsKeyDown   -> Taste wird gehalten
+        // IsKeyPressed -> Taste wurde gerade gedrückt
+        // --------------------------------------------------------
+
+        private readonly Dictionary<ConsoleKey, bool> currentKeyStates =
+            new Dictionary<ConsoleKey, bool>();
+
+        private readonly Dictionary<ConsoleKey, bool> previousKeyStates =
+            new Dictionary<ConsoleKey, bool>();
         // --------------------------------------------------------
         // GetAsyncKeyState kommt direkt aus Windows.
         //
@@ -45,7 +60,11 @@ namespace D007Adventure.Input
 
         public void Update()
         {
-            // Momentan müssen wir hier noch nichts machen.
+            // Die aktuell verwendeten Tasten werden in diesem Frame
+            // noch nicht dauerhaft gespeichert.
+            //
+            // IsKeyPressed() liest den aktuellen Zustand und vergleicht
+            // ihn mit dem Zustand aus dem vorherigen Frame.
         }
 
 
@@ -79,6 +98,34 @@ namespace D007Adventure.Input
             // gerade gedrückt.
 
             return (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
+        }
+
+        public bool IsKeyPressed(ConsoleKey key)
+        {
+            int virtualKey = ConvertToVirtualKey(key);
+
+            bool currentState =
+                (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
+
+
+            bool previousState = false;
+
+            if (previousKeyStates.ContainsKey(key))
+            {
+                previousState = previousKeyStates[key];
+            }
+
+
+            // Aktuellen Zustand für den nächsten Frame speichern.
+            previousKeyStates[key] = currentState;
+
+
+            // Nur true, wenn:
+            //
+            // vorher  = false
+            // jetzt   = true
+            //
+            return currentState && !previousState;
         }
 
 
@@ -177,10 +224,10 @@ namespace D007Adventure.Input
                     return 0x54;
 
                 case ConsoleKey.U:
-                    return 0x54;
+                    return 0x55;
 
                 case ConsoleKey.V:
-                    return 0x55;
+                    return 0x56;
 
                 case ConsoleKey.W:
                     return 0x57;
