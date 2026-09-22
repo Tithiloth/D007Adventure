@@ -18,30 +18,36 @@ namespace D007Adventure.Entities
 
 
         // Is a combined stat of all the character's armor and any armor from equipment ! 
-        public int Armor { get; set; } = 0;
-        public double DamageReduction => Math.Min(Armor * 0.75); // Platzhalter Berechnung
+        public double Armor { get; set; } = 0;
+        public double DamageReduction =>  Armor * 0.75; // Platzhalter Berechnung
+        // oder meinstest du den DamageReduction als eine Methode, die die maximale Schadensreduktion berechnet? Dann könnte es so aussehen:
+        // public double DamageReduction => Math.Min(Armor, Armor * 0.75);
 
 
         // Damage Calculation goes here ! 
-        public int BaseDamage { get; set; } = 0;
-        public int WeaponDamage { get; set; } = 0;
-        public double RawDamage = BaseDamage + WeaponDamage; // Platzhalter Berechnung
+        public double BaseDamage { get; set; } = 0;
+        public double WeaponDamage { get; set; } = 0;
+        public double RawDamage => BaseDamage + WeaponDamage; // Platzhalter Berechnung
 
 
         int SkillPoints { get; set; } = 0;
 
 
         // methods for using/calculation comes here later on
-        public static damageCalc()
+        public double DamageCalc()
         {
             double result = RawDamage - DamageReduction; // Platzhalter Berechnung
-            return result;
+            return result; 
         }
 
-        public void actualDamage(damageCalc result)
+        public void ActualDamage(double damage)
         {
-            int incomingDamage = result;
-            Health -= result;
+            Health -= (int)damage;
+
+            //Später können wir hier noch eine Methode einbauen, die prüft, ob der Charakter noch lebt oder nicht.
+            //und:
+            //double damage = DamageCalc();
+            //ActualDamage(damage);
         }
 
 
