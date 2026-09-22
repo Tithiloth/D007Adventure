@@ -1,6 +1,7 @@
 ﻿using D007Adventure.Graphics;
 using D007Adventure.Input;
 using D007Adventure.GUI;
+using D007Adventure.Audio;
 using System;
 using System.Threading;
 
@@ -47,10 +48,19 @@ namespace D007Adventure
         // Unser OptionsMenu.
         private readonly Options options;
 
+        // Unser GraphicsOptionsMenu.
         private readonly GraphicsOptions graphicsOptions;
 
         // Unser SoundOptionsMenu.
         private readonly SoundOptions soundOptions;
+
+        // Unser KeybindingsMenu.
+
+        // Unser WavPlayer für Soundeffekte.
+        private readonly WavPlayer wavPlayer;
+
+        // Unser OggPlayer für Musik.
+        private OggPlayer oggPlayer = new D007Adventure.Audio.OggPlayer();
 
         // Unser GameLoop-Zustand.
         private bool gameStarted;
@@ -86,6 +96,9 @@ namespace D007Adventure
 
             // Wir erstellen das Maus-Input-System.
             mouse = new Mouse(window);
+
+            // Wir erstellen den WavPlayer.
+            wavPlayer = new WavPlayer();
 
             gameStarted = false;
 
@@ -128,6 +141,27 @@ namespace D007Adventure
 
         public void Run()
         {
+            // Wir starten die Hintergrundmusik. true nur wenn es im loop laufen soll.
+            if(input.IsKeyPressed(ConsoleKey.W))
+            {
+                wavPlayer.Stop();
+                oggPlayer.Stop();
+            }
+            else
+            {
+                wavPlayer.Play("Assets/Audio/MenuMusic.wav", true);
+            }
+
+            if(input.IsKeyPressed(ConsoleKey.O))
+            {
+                wavPlayer.Stop();
+                oggPlayer.Stop();
+            }
+            else
+            {
+                oggPlayer.Play("Assets/Audio/MenuMusic.ogg", true);
+            }
+
             while (!window.ShouldClose)
             {
                 // ------------------------------------------------
