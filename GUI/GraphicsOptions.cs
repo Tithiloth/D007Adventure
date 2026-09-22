@@ -103,6 +103,18 @@ namespace D007Adventure.GUI
                 200, 200, 256, 64
                 );
 
+            // Auflösung zeichnen
+            renderer.DrawImage(
+                resolution,
+                200, 300, 256, 64
+                );
+
+            // Vsync zeichnen
+            renderer.DrawImage(
+                vsync,
+                200, 400, 256, 64
+                );
+
             renderer.DrawImage(
                 drop,
                 512, 200, 330, 64
@@ -126,18 +138,6 @@ namespace D007Adventure.GUI
                     );
                 return;
             }
-
-            // Auflösung zeichnen
-            renderer.DrawImage(
-                resolution,
-                200, 300, 256, 64
-                );
-
-            // Vsync zeichnen
-            renderer.DrawImage(
-                vsync,
-                200, 400, 256, 64
-                );
         }
 
         public void Dispose()

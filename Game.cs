@@ -61,6 +61,7 @@ namespace D007Adventure
         private bool showGraphicsMenu = false;
         private bool showSoundOptionsMenu = false;
         private bool showKeybindingsMenu = false;
+        private bool isClicked = false;
 
         // Maus-Input-System.
         private readonly Mouse mouse;
@@ -263,13 +264,24 @@ namespace D007Adventure
                     {
                         graphicsOptions.Draw();
                        
-                        if(mouse.LeftButtonPressed &&
+                        if(mouse.LeftButtonDown &&
                             mouse.X >= 768 &&
-                            mouse.X <= 832 &&
+                            mouse.X <= 842 &&
                             mouse.Y >= 201 &&
                             mouse.Y <= 264)
                         {
-                            graphicsOptions.pullDown = true;
+                            isClicked = true;
+
+                            if (isClicked)
+                            {
+                                graphicsOptions.pullDown = true;
+                                graphicsOptions.Draw();
+                                isClicked = false;
+                            }
+                        }
+                        else
+                        {
+                           graphicsOptions.pullDown = false;
                         }
                     }
                     else if (showSoundOptionsMenu)
