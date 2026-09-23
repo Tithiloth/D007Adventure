@@ -4,9 +4,11 @@ using D007Adventure.GUI;
 using D007Adventure.Audio;
 using System;
 using System.Threading;
+using System.ComponentModel.Design;
 
 namespace D007Adventure
 {
+
     // ============================================================
     // GAME
     // ============================================================
@@ -109,16 +111,28 @@ namespace D007Adventure
                 renderer
                 );
 
+            Logger.Info(
+                "HauptMenü initialisiert"
+                );
+
             options = new Options(
                 imageLoader,
                 input,
                 renderer
                 );
 
+            Logger.Info(
+                "OptionsMenü initialisiert"
+                );
+
             graphicsOptions = new GraphicsOptions
                 (imageLoader,
                 input,
                 renderer
+                );
+
+            Logger.Info(
+                "GrafikOptionsMenü initialisiert"
                 );
 
             soundOptions = new SoundOptions(
@@ -253,8 +267,8 @@ namespace D007Adventure
                     {
                         // Prüfen, oder der Spieler die Grafikeinstellungen öffnen möchte.
                         if(mouse.LeftButtonPressed && 
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 400 &&
                             mouse.Y <= 464)
                         {
@@ -266,8 +280,8 @@ namespace D007Adventure
                         }
                         // Prüfen, ob der Spieler die Soundeinstellungen öffnen möchte.
                         else if(mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 500 &&
                             mouse.Y <= 564)
                         {
@@ -279,8 +293,8 @@ namespace D007Adventure
                         }
                         // Prüfen, ob der Spieler die Tastatureinstellungen öffnen möchte.
                         else if (mouse.LeftButtonPressed &&
-                                mouse.X >= 1600 &&
-                                mouse.X <= 1856 &&
+                                mouse.X >= 832 &&
+                                mouse.X <= 1086 &&
                                 mouse.Y >= 600 &&
                                 mouse.Y <= 664)
                         {
@@ -304,14 +318,16 @@ namespace D007Adventure
                             mouse.Y >= 201 &&
                             mouse.Y <= 264)
                         {
+
                             isClicked = true;
 
                             if (isClicked)
                             {
                                 graphicsOptions.pullDown = true;
                                 graphicsOptions.Draw();
-                                isClicked = false;
+                                isClicked = true;
                             }
+                            isClicked = false;
                         }
                         else
                         {
@@ -340,10 +356,10 @@ namespace D007Adventure
                         // Prüfen, ob der Spieler das Spiel starten
                         // möchte.
                         if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
-                            mouse.Y >= 400 &&
-                            mouse.Y <= 464)
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
+                            mouse.Y >= 300 &&
+                            mouse.Y <= 364)
                         {
                             gameStarted = true;
 
@@ -354,8 +370,8 @@ namespace D007Adventure
 
                         // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
                         if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 500 &&
                             mouse.Y <= 564)
                         {
@@ -368,10 +384,10 @@ namespace D007Adventure
 
                         // Prüfen, ob der Spieler das Spiel beenden
                         if (mouse.LeftButtonPressed &&
-                                mouse.X >= 1600 &&
-                                mouse.X <= 1856 &&
-                                mouse.Y >= 600 &&
-                                mouse.Y <= 664)
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
+                            mouse.Y >= 600 &&
+                            mouse.Y <= 664)
                         {
                             window.Quit();
                         }

@@ -3,7 +3,7 @@
     public class PlantData
     {
         public string Name { get; set; } = "";
-        public string Description { get; set; } = "";
+        public string Description { get; set; } = "";        
 
         public int GrowthDays { get; set; }
         public int MaxGrowthStages { get; set; }
