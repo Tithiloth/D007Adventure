@@ -66,18 +66,21 @@ namespace D007Adventure.GUI
             // ----------------------------------------------------
             // Buttons laden.
             // ----------------------------------------------------
+            loadbutton = imageLoader.Load(
+                "Assets/Buttons/Load.png"
+                );
 
             startbutton = imageLoader.Load(
                 "Assets/Buttons/StartButton.png"
-            );
+                );
 
             optionsbutton = imageLoader.Load(
                 "Assets/Buttons/OptionsButton.png"
-            );
+                );
 
             exitbutton = imageLoader.Load(
                 "Assets/Buttons/ExitButton.png"
-            );
+                );
         }
 
         // ========================================================
@@ -98,37 +101,31 @@ namespace D007Adventure.GUI
             // Hintergrundbild zeichnen.
             renderer.DrawImage(
                 background,
-                0,
-                0,
-                1920,
-                1080
+                0, 0, 1920, 1080
             );
 
             // Startbutton zeichnen.
             renderer.DrawImage(
                 startbutton,
-                1600,
-                400,
-                256,
-                64
+                832, 300, 256, 64
+            );
+
+            // Loadbutton zeichnen
+            renderer.DrawImage(
+                loadbutton,
+                832, 400, 256, 64
             );
 
             // Optionsbutton zeichnen.
             renderer.DrawImage(
                 optionsbutton,
-                1600,
-                500,
-                256,
-                64
+                832, 500, 256, 64
             );
 
             // Exitbutton zeichnen.
             renderer.DrawImage(
                 exitbutton,
-                1600,
-                600,
-                256,
-                64
+                832, 600, 256, 64
             );
         }
 
