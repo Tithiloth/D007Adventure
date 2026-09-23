@@ -5,8 +5,11 @@
             public string Name {get;set;}
             public string Description {get;set;}
             public int GrowthDays {get;set;}
+            public double GrowthStages {get;set;}
             public string HarvestName {get;set;}
+            public int HarvestAmountMin
             public string CropUse {get;set;}
+            
         }
 
         public class Plant
