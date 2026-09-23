@@ -1,6 +1,6 @@
 ﻿namespace D007Adventure.Tools
 {
-    public class Schaufel : Tool
+    public class Schaufel //: Tool
     {
         // ===========================================================================
         // Schaufel
@@ -21,10 +21,10 @@
 
 
         //Ability überschreiben; Kessel hat keine Ability
-        public override void Ability()
-        {
-            //ausgraben/umgraben
-            return;
-        }
+        //public override void Ability()
+        //{
+        //    //ausgraben/umgraben
+        //    return;
+        //}
     }
 }

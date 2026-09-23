@@ -1,6 +1,6 @@
 ﻿namespace D007Adventure.Tools
 {
-    public class Kessel : Tool
+    public class Kessel //: Tool
     {
         // ===========================================================================
         // Kessel
@@ -31,10 +31,10 @@
         private Array[] RecipeDatabase;
 
         //Ability überschreiben; Kessel hat keine Ability
-        public override void Ability()
-        {
-            return;
-        }
+        //public override void Ability()
+        //{
+        //    return;
+        //}
 
         public void Craft()
         {
