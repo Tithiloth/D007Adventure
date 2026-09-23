@@ -1,12 +1,12 @@
 ﻿namespace D007Adventure.Tools
 {
-    public class Tools
+    public class Tool
     {
         public string Name { get; set; } = "default";
         public bool IsWeapon { get; set; } = false;
         public int Damage { get; set; } = 0;
         public int Tier { get; set; } = 0;
-        private int MaxTier { get; set; } = 5;
+        public int MaxTier { get; set; } = 5;
         public virtual void Ability()
         {
             Logger.Error($"Werkzeug [{Name}] wurde keine Ability Funktion zugewiesen.");
