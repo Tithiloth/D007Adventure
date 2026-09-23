@@ -1,12 +1,7 @@
 //{
-//  "Name" "=",
-//  "Trauertrauben",
-//  "Description" "=",
-//  "Bringen selbst den stärksten Mann zum Weinen",
-//  "GrowthDays" "=",
-//  4,
-//  "HarvestName" "=",
-//  "Trauertraubensaft",
-//  "CropUse" "=",
-//  ""
+//  Name = Trauertrauben,
+//  Description = "Bringen selbst den stärksten Mann zum Weinen",
+//  GrowthDays = 4,
+//  HarvestName = "Trauertraubensaft",
+//  CropUse= ""
 //};
