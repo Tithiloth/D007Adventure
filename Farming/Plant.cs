@@ -7,7 +7,7 @@
             public int GrowthDays {get;set;}
             public double GrowthStages {get;set;}
             public string HarvestName {get;set;}
-            public int HarvestAmountMin
+            public int HarvestAmountMin;
             public string CropUse {get;set;}
             
         }

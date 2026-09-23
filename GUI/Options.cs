@@ -91,35 +91,23 @@ namespace D007Adventure.GUI
             // Hintergrundbild zeichnen.
             renderer.DrawImage(
                 background,
-                0,
-                0,
-                1920,
-                1080
+                0, 0, 1920,1080
             );
 
             // Buttons zeichnen.
             renderer.DrawImage(
                 graphicsbutton,
-                1600,
-                400,
-                256,
-                64
+                832, 400, 256, 64
             );
 
             renderer.DrawImage(
                 soundbutton,
-                1600,
-                500,
-                256,
-                64
+                832, 500, 256, 64
             );
 
             renderer.DrawImage(
                 keybindingsbutton,
-                1600,
-                600,
-                256,
-                64
+                832, 600, 256, 64
             );
         }
     }
