@@ -1,4 +1,4 @@
-﻿ namespace D007Adventure
+﻿namespace D007Adventure.Farming
     {
         public class PlantData
         {
