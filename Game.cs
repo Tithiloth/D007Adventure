@@ -111,16 +111,28 @@ namespace D007Adventure
                 renderer
                 );
 
+            Logger.Info(
+                "HauptMenü initialisiert"
+                );
+
             options = new Options(
                 imageLoader,
                 input,
                 renderer
                 );
 
+            Logger.Info(
+                "OptionsMenü initialisiert"
+                );
+
             graphicsOptions = new GraphicsOptions
                 (imageLoader,
                 input,
                 renderer
+                );
+
+            Logger.Info(
+                "GrafikOptionsMenü initialisiert"
                 );
 
             soundOptions = new SoundOptions(
