@@ -1,6 +1,6 @@
 ﻿namespace D007Adventure.Tools
 {
-    public class Schaufel //: Tool
+    public class Schaufel : Tool
     {
         // ===========================================================================
         // Schaufel
