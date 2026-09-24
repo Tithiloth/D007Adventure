@@ -11,7 +11,7 @@ namespace D007Adventure.GUI
     {
         private IntPtr background;
         private IntPtr keys;
-        private IntPtr Cancel;
+        private IntPtr cancel;
 
         private readonly ImageLoader imageLoader;
         private readonly D007Adventure.Input.Input input;
@@ -38,7 +38,7 @@ namespace D007Adventure.GUI
                 "Assets/Options/ControlsOptions/Keys.png"
                 );
 
-            Cancel = imageLoader.Load(
+            cancel = imageLoader.Load(
                 "Assets/Buttons/Cancel.png"
                 );
         }
@@ -56,7 +56,7 @@ namespace D007Adventure.GUI
             );
 
             renderer.DrawImage(
-                Cancel,
+                cancel,
                 1302, 958, 256, 64
             );
         }

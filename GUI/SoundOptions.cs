@@ -10,6 +10,7 @@ namespace D007Adventure.GUI
     internal class SoundOptions
     {
         private IntPtr background;
+        private IntPtr player;
 
         private readonly ImageLoader imageLoader;
         private readonly D007Adventure.Input.Input input;
@@ -42,6 +43,10 @@ namespace D007Adventure.GUI
                     "Hintergrundbild für SoundOptions erfolgreich geladen"
                 );
             }
+
+            player = imageLoader.Load(
+                "Assets/Player.png"
+            );
         }
        
         public void Draw()
@@ -57,6 +62,11 @@ namespace D007Adventure.GUI
             renderer.DrawImage(
                 background,
                 0, 0, 1920, 1080
+            );
+
+            renderer.DrawImage(
+                player,
+                359, 180, 256, 128
             );
         }
 

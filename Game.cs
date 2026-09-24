@@ -488,3 +488,13 @@ namespace D007Adventure
         }
     }
 }
+
+// ============================================================
+// if(input.IsKeyPressed(ConsoleKey.W))
+// {
+//     player.X -= 5;
+// }
+// else if(input.IsKeyPressed(ConsoleKey.S))
+// {
+//     player.X += 5;
+// }
