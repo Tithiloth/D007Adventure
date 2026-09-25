@@ -17,7 +17,8 @@
 
         public int GetHarvestAmount()
         {
-            return Random.Shared.Next(
+            return Random.Shared.Next
+            (
                 HarvestAmountMin,
                 HarvestAmountMax + 1
             );
