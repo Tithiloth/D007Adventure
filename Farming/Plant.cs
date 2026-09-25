@@ -3,18 +3,17 @@
     public class PlantData
     {
         public string Name { get; set; } = "";
-        public string Description { get; set; } = "";        
+        public string Description { get; set; } = "";
 
         public int GrowthDays { get; set; }
         public int MaxGrowthStages { get; set; }
 
-        public string HarvestName { get; set; } = "";
+        // public ItemData HarvestItem { get; set; } = new ItemData();
+
         public int HarvestAmountMin { get; set; }
         public int HarvestAmountMax { get; set; }
 
         public int RegrowDays { get; set; }
-
-        public string CropUse { get; set; } = "";
 
         public int GetHarvestAmount()
         {
@@ -41,15 +40,18 @@
 
     public class Plant
     {
-        public static void PlantDescription()
+        public static void PlantDiscription()
         {
             var sorrowGrapes = new PlantData
             {
                 Name = "Trauertrauben",
                 Description = "Bringen selbst den stärksten Mann zum Weinen",
                 GrowthDays = 4,
-                HarvestName = "Trauertraubensaft",
-                CropUse = ""
+                MaxGrowthStages = 4,
+                HarvestAmountMin = 2,
+                HarvestAmountMax = 4,
+                RegrowDays = 3,
+
             };
 
             var someCrops = new PlantData
@@ -57,8 +59,10 @@
                 Name = "Knochenspornbusch",
                 Description = "Knochensporn-Teeblätter zersetzen Wildfleisch und Knochen, wenn sie in Wasser eingelegt werden",
                 GrowthDays = 4,
-                HarvestName = "Knochenspornblatt-Umschlag",
-                CropUse = ""
+                MaxGrowthStages = 4,
+                HarvestAmountMin = 2,
+                HarvestAmountMax = 4,
+                RegrowDays = 3,
             };
 
             Console.WriteLine(sorrowGrapes.Name);
@@ -66,8 +70,3 @@
         }
     }
 }
-
-//Settings settings =
-//        //     JsonParser.Load<Settings>(
-//        //         "Assets/Config/settings.json"
-//        //     );

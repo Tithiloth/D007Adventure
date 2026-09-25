@@ -1,6 +1,6 @@
 ﻿namespace D007Adventure.Tools
 {
-    public class Kessel 
+    public class Kessel  : Tool
     {
         // ===========================================================================
         // Kessel

@@ -56,7 +56,8 @@ namespace D007Adventure
         // Unser SoundOptionsMenu.
         private readonly SoundOptions soundOptions;
 
-        // Unser KeybindingsMenu.
+        // Unser ControlsOptionsMenu.
+        private readonly ControlsOptions controlsOptions;
 
         // Unser WavPlayer für Soundeffekte.
         private readonly WavPlayer wavPlayer;
@@ -72,7 +73,7 @@ namespace D007Adventure
         private bool showOptionsMenu = false;
         private bool showGraphicsMenu = false;
         private bool showSoundOptionsMenu = false;
-        private bool showKeybindingsMenu = false;
+        private bool showControlsOptionsMenu = false;
         private bool isClicked = false;
 
         // Maus-Input-System.
@@ -142,6 +143,20 @@ namespace D007Adventure
                 );
 
             Logger.Info(
+                "SoundOptionsMenü initialisiert"
+                );
+
+            controlsOptions = new ControlsOptions(
+                imageLoader,
+                input,
+                renderer
+                );
+
+            Logger.Info(
+                "SteuerungsOptionsMenü initialisiert"
+                );
+
+            Logger.Info(
                 "Game initialisiert"
                 );
         }
@@ -163,7 +178,7 @@ namespace D007Adventure
             }
             else
             {
-                wavPlayer.Play("Assets/Audio/MenuMusic.wav", true);
+                //wavPlayer.Play("Assets/Audio/MenuMusic.wav", true);
             }
 
             if(input.IsKeyPressed(ConsoleKey.O))
@@ -240,12 +255,12 @@ namespace D007Adventure
                             "Soundeinstellungen verlassen, zurück zu den Einstellungen."
                             );
                     }
-                    else if (showKeybindingsMenu)
+                    else if (showControlsOptionsMenu)
                     {
-                        showKeybindingsMenu = false;
+                        showControlsOptionsMenu = false;
                         showOptionsMenu = true;
                         Logger.Info(
-                            "Tastatureinstellungen verlassen, zurück zu den Einstellungen."
+                            "Steuerungseinstellungen verlassen, zurück zu den Einstellungen."
                             );
                     }
                 }
@@ -300,14 +315,15 @@ namespace D007Adventure
                         {
                             showOptionsMenu = false;
                             showMainMenu = false;
-                            showKeybindingsMenu = true;
+                            showControlsOptionsMenu = true;
 
                             Logger.Info(
-                                "Tastatureinstellungen geöffnet."
+                                "Steuerungseinstellungen geöffnet."
                                 );
                         }
                         options.Draw();
                     }
+
                     else if (showGraphicsMenu)
                     {
                         graphicsOptions.Draw();
@@ -339,11 +355,10 @@ namespace D007Adventure
                         // Hier steht der Code für das Zeichnen des Sound-Options-Menüs.
                         soundOptions.Draw();
                     }
-                    else if (showKeybindingsMenu)
+                    else if (showControlsOptionsMenu)
                     {
-                        // Hier könnte später der Code für das Zeichnen des Keybindings-Menüs stehen.
-                        // Zum Beispiel:
-                        // keybindingsMenu.Draw();
+                        // Hier steht der Code für das Zeichnen des ControlsOptions-Menüs.
+                         controlsOptions.Draw();
                     }
                     else if (showMainMenu)
                     {
@@ -473,3 +488,13 @@ namespace D007Adventure
         }
     }
 }
+
+// ============================================================
+// if(input.IsKeyPressed(ConsoleKey.W))
+// {
+//     player.X -= 5;
+// }
+// else if(input.IsKeyPressed(ConsoleKey.S))
+// {
+//     player.X += 5;
+// }
