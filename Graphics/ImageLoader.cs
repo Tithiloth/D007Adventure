@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Drawing;
 
 namespace D007Adventure.Graphics
 {
@@ -96,6 +97,10 @@ namespace D007Adventure.Graphics
                     $"(GDI+ Fehlercode: {result})"
                 );
             }
+
+            // ------------------------------------------------------
+            // Magenta transparent machen (#FF00FF/RGB = 255, 0, 255)
+            // ------------------------------------------------------
 
 
             // ----------------------------------------------------
@@ -221,6 +226,14 @@ namespace D007Adventure.Graphics
         private static extern int GdipCreateBitmapFromFile(
             string filename,
             out IntPtr bitmap
+        );
+
+        [DllImport("gdiplus.dll")]
+
+        private static extern int GdiImageColorKey(
+            IntPtr image,
+            uint colorlow,
+            uint colorHigh
         );
 
 

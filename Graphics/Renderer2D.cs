@@ -255,7 +255,13 @@ namespace D007Adventure.Graphics
                 return;
             }
 
-            StretchBlt(
+            // --------------------------------------------------------
+            // Bild zeichnen.
+            //
+            // #FF00FF wird dabei transparent behandelt.
+            // -------------------------------------------------------- 
+
+            TransparentBlt(
                 backBufferDC,
                 x,
                 y,
@@ -266,7 +272,21 @@ namespace D007Adventure.Graphics
                 0,
                 width,
                 height,
-                SRCCOPY
+                RGB(255, 0, 255)
+            );
+
+            bool success = TransparentBlt(
+                backBufferDC,
+                x,
+                y,
+                width,
+                height,
+                memoryDC,
+                0,
+                0,
+                width,
+                height,
+                RGB(255, 0, 255)
             );
 
             // Ursprüngliches Objekt wieder einsetzen.
@@ -540,8 +560,8 @@ namespace D007Adventure.Graphics
             IntPtr objectHandle);
 
 
-        [DllImport("gdi32.dll")]
-        private static extern bool StretchBlt(
+        [DllImport("msimg32.dll")]
+        private static extern bool TransparentBlt(
             IntPtr destination,
             int x,
             int y,
@@ -552,7 +572,8 @@ namespace D007Adventure.Graphics
             int sourceY,
             int sourceWidth,
             int sourceHeight,
-            uint rasterOperation);
+            uint transparentColor
+        );
 
 
         [DllImport("gdi32.dll")]

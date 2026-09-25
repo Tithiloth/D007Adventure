@@ -1,11 +1,14 @@
 ﻿using D007Adventure.Graphics;
 using D007Adventure.Input;
 using D007Adventure.GUI;
+using D007Adventure.Audio;
 using System;
 using System.Threading;
+using System.ComponentModel.Design;
 
 namespace D007Adventure
 {
+
     // ============================================================
     // GAME
     // ============================================================
@@ -47,10 +50,20 @@ namespace D007Adventure
         // Unser OptionsMenu.
         private readonly Options options;
 
+        // Unser GraphicsOptionsMenu.
         private readonly GraphicsOptions graphicsOptions;
 
         // Unser SoundOptionsMenu.
         private readonly SoundOptions soundOptions;
+
+        // Unser ControlsOptionsMenu.
+        private readonly ControlsOptions controlsOptions;
+
+        // Unser WavPlayer für Soundeffekte.
+        private readonly WavPlayer wavPlayer;
+
+        // Unser OggPlayer für Musik.
+        private OggPlayer oggPlayer = new D007Adventure.Audio.OggPlayer();
 
         // Unser GameLoop-Zustand.
         private bool gameStarted;
@@ -60,7 +73,7 @@ namespace D007Adventure
         private bool showOptionsMenu = false;
         private bool showGraphicsMenu = false;
         private bool showSoundOptionsMenu = false;
-        private bool showKeybindingsMenu = false;
+        private bool showControlsOptionsMenu = false;
         private bool isClicked = false;
 
         // Maus-Input-System.
@@ -87,6 +100,9 @@ namespace D007Adventure
             // Wir erstellen das Maus-Input-System.
             mouse = new Mouse(window);
 
+            // Wir erstellen den WavPlayer.
+            wavPlayer = new WavPlayer();
+
             gameStarted = false;
 
             // Wir erstellen unser MainMenu.
@@ -96,10 +112,18 @@ namespace D007Adventure
                 renderer
                 );
 
+            Logger.Info(
+                "HauptMenü initialisiert"
+                );
+
             options = new Options(
                 imageLoader,
                 input,
                 renderer
+                );
+
+            Logger.Info(
+                "OptionsMenü initialisiert"
                 );
 
             graphicsOptions = new GraphicsOptions
@@ -108,10 +132,28 @@ namespace D007Adventure
                 renderer
                 );
 
+            Logger.Info(
+                "GrafikOptionsMenü initialisiert"
+                );
+
             soundOptions = new SoundOptions(
                 imageLoader,
                 input,
                 renderer
+                );
+
+            Logger.Info(
+                "SoundOptionsMenü initialisiert"
+                );
+
+            controlsOptions = new ControlsOptions(
+                imageLoader,
+                input,
+                renderer
+                );
+
+            Logger.Info(
+                "SteuerungsOptionsMenü initialisiert"
                 );
 
             Logger.Info(
@@ -128,6 +170,27 @@ namespace D007Adventure
 
         public void Run()
         {
+            // Wir starten die Hintergrundmusik. true nur wenn es im loop laufen soll.
+            if(input.IsKeyPressed(ConsoleKey.W))
+            {
+                wavPlayer.Stop();
+                oggPlayer.Stop();
+            }
+            else
+            {
+                //wavPlayer.Play("Assets/Audio/MenuMusic.wav", true);
+            }
+
+            if(input.IsKeyPressed(ConsoleKey.O))
+            {
+                wavPlayer.Stop();
+                oggPlayer.Stop();
+            }
+            else
+            {
+                oggPlayer.Play("Assets/Audio/MenuMusic.ogg", true);
+            }
+
             while (!window.ShouldClose)
             {
                 // ------------------------------------------------
@@ -192,12 +255,12 @@ namespace D007Adventure
                             "Soundeinstellungen verlassen, zurück zu den Einstellungen."
                             );
                     }
-                    else if (showKeybindingsMenu)
+                    else if (showControlsOptionsMenu)
                     {
-                        showKeybindingsMenu = false;
+                        showControlsOptionsMenu = false;
                         showOptionsMenu = true;
                         Logger.Info(
-                            "Tastatureinstellungen verlassen, zurück zu den Einstellungen."
+                            "Steuerungseinstellungen verlassen, zurück zu den Einstellungen."
                             );
                     }
                 }
@@ -219,8 +282,8 @@ namespace D007Adventure
                     {
                         // Prüfen, oder der Spieler die Grafikeinstellungen öffnen möchte.
                         if(mouse.LeftButtonPressed && 
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 400 &&
                             mouse.Y <= 464)
                         {
@@ -232,8 +295,8 @@ namespace D007Adventure
                         }
                         // Prüfen, ob der Spieler die Soundeinstellungen öffnen möchte.
                         else if(mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 500 &&
                             mouse.Y <= 564)
                         {
@@ -245,21 +308,22 @@ namespace D007Adventure
                         }
                         // Prüfen, ob der Spieler die Tastatureinstellungen öffnen möchte.
                         else if (mouse.LeftButtonPressed &&
-                                mouse.X >= 1600 &&
-                                mouse.X <= 1856 &&
+                                mouse.X >= 832 &&
+                                mouse.X <= 1086 &&
                                 mouse.Y >= 600 &&
                                 mouse.Y <= 664)
                         {
                             showOptionsMenu = false;
                             showMainMenu = false;
-                            showKeybindingsMenu = true;
+                            showControlsOptionsMenu = true;
 
                             Logger.Info(
-                                "Tastatureinstellungen geöffnet."
+                                "Steuerungseinstellungen geöffnet."
                                 );
                         }
                         options.Draw();
                     }
+
                     else if (showGraphicsMenu)
                     {
                         graphicsOptions.Draw();
@@ -270,14 +334,16 @@ namespace D007Adventure
                             mouse.Y >= 201 &&
                             mouse.Y <= 264)
                         {
+
                             isClicked = true;
 
                             if (isClicked)
                             {
                                 graphicsOptions.pullDown = true;
                                 graphicsOptions.Draw();
-                                isClicked = false;
+                                isClicked = true;
                             }
+                            isClicked = false;
                         }
                         else
                         {
@@ -289,11 +355,10 @@ namespace D007Adventure
                         // Hier steht der Code für das Zeichnen des Sound-Options-Menüs.
                         soundOptions.Draw();
                     }
-                    else if (showKeybindingsMenu)
+                    else if (showControlsOptionsMenu)
                     {
-                        // Hier könnte später der Code für das Zeichnen des Keybindings-Menüs stehen.
-                        // Zum Beispiel:
-                        // keybindingsMenu.Draw();
+                        // Hier steht der Code für das Zeichnen des ControlsOptions-Menüs.
+                         controlsOptions.Draw();
                     }
                     else if (showMainMenu)
                     {
@@ -306,10 +371,10 @@ namespace D007Adventure
                         // Prüfen, ob der Spieler das Spiel starten
                         // möchte.
                         if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
-                            mouse.Y >= 400 &&
-                            mouse.Y <= 464)
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
+                            mouse.Y >= 300 &&
+                            mouse.Y <= 364)
                         {
                             gameStarted = true;
 
@@ -320,8 +385,8 @@ namespace D007Adventure
 
                         // Prüfen, ob der Spieler die Einstellungen öffnen möchte.
                         if (mouse.LeftButtonPressed &&
-                            mouse.X >= 1600 &&
-                            mouse.X <= 1856 &&
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
                             mouse.Y >= 500 &&
                             mouse.Y <= 564)
                         {
@@ -334,10 +399,10 @@ namespace D007Adventure
 
                         // Prüfen, ob der Spieler das Spiel beenden
                         if (mouse.LeftButtonPressed &&
-                                mouse.X >= 1600 &&
-                                mouse.X <= 1856 &&
-                                mouse.Y >= 600 &&
-                                mouse.Y <= 664)
+                            mouse.X >= 832 &&
+                            mouse.X <= 1086 &&
+                            mouse.Y >= 600 &&
+                            mouse.Y <= 664)
                         {
                             window.Quit();
                         }
@@ -423,3 +488,13 @@ namespace D007Adventure
         }
     }
 }
+
+// ============================================================
+// if(input.IsKeyPressed(ConsoleKey.W))
+// {
+//     player.X -= 5;
+// }
+// else if(input.IsKeyPressed(ConsoleKey.S))
+// {
+//     player.X += 5;
+// }

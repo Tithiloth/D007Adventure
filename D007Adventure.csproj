@@ -13,9 +13,19 @@
 
   <ItemGroup>
     <Folder Include="Assets\Backgrounds\" />
+    <Folder Include="Assets\Config\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\Audio\Blademasterz-In-The-End.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Audio\MenuMusic.ogg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Audio\MenuMusic.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Backgrounds\BGMain.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -64,10 +74,13 @@
     <None Update="Assets\Options\Keybindings.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\Options\Keys.png">
+    <None Update="Assets\Options\ControlsOptions\Keys.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Options\Sound.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Player.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
