@@ -29,12 +29,12 @@ namespace D007Adventure.Entities
     public class NormalEnemy : Character // first simple enemy
     {
         //Change numbers later
-        public override void Attributes() 
-        {
-          Health = 0;
-          MaxHealth = 0;
-          BaseDamage = 0;
-        }
+        //public override void Attributes() 
+        //{
+        //  Health = 0;
+        //  MaxHealth = 0;
+        //  BaseDamage = 0;
+        //}
 
 
 

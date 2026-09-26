@@ -3,9 +3,30 @@ using System.Runtime.InteropServices;
 
 namespace D007Adventure.Graphics
 {
-    // ============================================================
+    //============================================================
+    // WINDOW Mode
+    //============================================================
+    // 
+    // Diese Emumeration beschreibt die drei möglichen
+    // Darstellungsmodi unseres Spielensters.
+    //
+    // Windowed: Normales Fenster mit Rahmen und Titelleiste.
+    //
+    // Borderless: Fenster ohne Rahmen und Titelleiste.
+    //
+    // Fullscreen: Das Fenster nimmt den gesamten Bildschirm ein.
+    //=============================================================
+
+    public enum WindowMode
+    {
+        Windowed,
+        Borderless,
+        Fullscreen
+    }
+
+    //============================================================
     // WINDOW
-    // ============================================================
+    //============================================================
     //
     // Diese Klasse erstellt und verwaltet unser Spielfenster.
     //
@@ -13,38 +34,102 @@ namespace D007Adventure.Graphics
     // erstellt.
     //
     // Wir benutzen direkt die Windows-API.
-    // ============================================================
+    //============================================================
 
     public class Window
     {
-        // ========================================================
+        //========================================================
         // WINDOWS-KONSTANTEN
-        // ========================================================
+        //========================================================
 
         private const int CS_HREDRAW = 0x0002;
         private const int CS_VREDRAW = 0x0001;
 
-        // Fullscreen-Fenster ohne Rahmen und Titelleiste.
+        //--------------------------------------------------------
+        // Windows Konstanten für Fensterstile.
+        //--------------------------------------------------------
+
+        // Normales Windowsfenster
+        //
+        // Titelleiste, Rahmen, Fensterrand.
+        // Minimieren, Maximieren, Schließen.
+        private const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
+
+        // Fenster ohne Rahmen, Titelleiste und Fensterrand.
+        //
+        // Dieses Fenster wird für den Borderless-Modus und Vollbild
+        // verwendet.
         private const uint WS_POPUP = 0x80000000;
 
+        //--------------------------------------------------------
+        // ShowWindow() Konstanten.
+        //--------------------------------------------------------
         private const int SW_SHOW = 5;
         private const int SW_HIDE = 0;
 
+        //--------------------------------------------------------
+        // PeekMessage() Konstanten.
+        //--------------------------------------------------------
         private const uint PM_REMOVE = 0x0001;
 
+        //--------------------------------------------------------
+        // Windows Nachrichten.
+        //--------------------------------------------------------
         private const uint WM_QUIT = 0x0012;
         private const uint WM_CLOSE = 0x0010;
         private const uint WM_DESTROY = 0x0002;
 
+        //--------------------------------------------------------
+        // Windows Cursor Konstanten.
+        //--------------------------------------------------------
         private const int IDC_ARROW = 32512;
 
+        //--------------------------------------------------------
+        // Windows System Metrics Konstanten.
+        // (Bildschirmauflösung)
+        //--------------------------------------------------------
         private const int SM_CXSCREEN = 0;
         private const int SM_CYSCREEN = 1;
 
+        //--------------------------------------------------------
+        // SetWindowPos() Konstanten.
+        //--------------------------------------------------------
 
-        // ========================================================
+        // SWP_NOMOVE bedeutet:
+        // Die Position des Fensters wird nicht verändert.
+        private const uint SWP_NOMOVE = 0x0002;
+
+        // SWP_NOSIZE bedeutet:
+        // Die Größe des Fensters wird nicht verändert.
+        private const uint SWP_NOSIZE = 0x0001;
+
+        // SWP_NOZORDER bedeutet:
+        // Die Z-Reihenfolge des Fensters wird nicht verändert.
+        private const uint SWP_NOZORDER = 0x0004;
+
+        // Windows soll Änderungen am Fensterrahmen sofort berrechnen.
+        private const uint SWP_FRAMECHANGED = 0x0020;
+
+        // Fenster nach der Änderung anzeigen.
+        private const uint SWP_SHOWWINDOW = 0x0040;
+
+        //--------------------------------------------------------
+        // SetWindowLongPtr() Konstanten.
+        //--------------------------------------------------------
+
+        // GWL_STYLE bedeutet:
+        // Wir wollen den Fensterstil ändern.
+        private const int GWL_STYLE = -16;
+
+        //--------------------------------------------------------
+        // HWND_TOP
+        //--------------------------------------------------------
+        private static readonly IntPtr HWND_TOP =
+            IntPtr.Zero;
+
+        //========================================================
         // WINDOWS-FUNKTIONEN
-        // ========================================================
+        //========================================================
 
         [DllImport(
             "kernel32.dll",
@@ -55,16 +140,18 @@ namespace D007Adventure.Graphics
 
         [DllImport(
             "user32.dll",
-            CharSet = CharSet.Ansi)]
+            CharSet = CharSet.Unicode,
+            SetLastError = true)]
         private static extern ushort RegisterClassEx(
             ref WNDCLASSEX windowClass);
 
 
         [DllImport(
             "user32.dll",
-            CharSet = CharSet.Ansi)]
+            CharSet = CharSet.Unicode,
+            SetLastError = true)]
         private static extern IntPtr CreateWindowEx(
-            int exStyle,
+            uint exStyle,
             string className,
             string windowName,
             uint style,
@@ -138,10 +225,34 @@ namespace D007Adventure.Graphics
         private static extern int GetSystemMetrics(
             int index);
 
+        //---------------------------------------------------------
+        // Ändert den Fensterstil.
+        //
+        // SetWindowLongPtr ist die 64-Bit-Version von
+        // SetWindowLong
+        //---------------------------------------------------------
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWindowLongPtr(
+            IntPtr hwnd,
+            int index,
+            IntPtr newStyle);
 
-        // ========================================================
+        //---------------------------------------------------------
+        // Ändert Die Position und Größe.
+        //---------------------------------------------------------
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(
+            IntPtr hwnd,
+            IntPtr hwndInsertAfter,
+            int x,
+            int y,
+            int width,
+            int height,
+            uint flags);
+
+        //========================================================
         // FELDER
-        // ========================================================
+        //========================================================
 
         private IntPtr handle;
 
@@ -155,65 +266,77 @@ namespace D007Adventure.Graphics
         private readonly WndProcDelegate wndProc;
 
 
-        // ========================================================
+        //========================================================
         // ÖFFENTLICHE EIGENSCHAFTEN
-        // ========================================================
+        //========================================================
 
-        public int Width { get; }
+        // Aktuelle Breite des Spielefensters
+        public int Width { get; private set; }
 
-        public int Height { get; }
+        // Agtuelle Höhe des Spielefensters
+        public int Height { get; private set; }
 
+        // Gibt an, ob das Fenster geschlossen werden soll.
         public bool ShouldClose { get; private set; }
 
+        // Aktueller Darstellungmodus
+        public WindowMode Mode { get; private set; }
+
+        // Aktuell verwendete Auflösungs-ID (PrivateKey(xD))
+        //
+        // Diese ID wird durch SetResolution() gesetzt.
+        public int Resolution { get; private set; }
 
         // Der Windows-Handle unseres Spielfensters.
         //
         // Der Renderer benötigt diesen Handle, um in unser
         // Fenster zeichnen zu können.
-
         public IntPtr Handle => handle;
 
 
-        // ========================================================
+        //========================================================
         // KONSTRUKTOR
-        // ========================================================
+        //========================================================
+        //
+        // Beim erstellen können wir direkt angeben:
+        //
+        // resolution:
+        //Welche Auflösung verwendet werden soll.
+        //
+        //mode:
+        //Windowed, Borderless oder Fullscreen
+        //
+        // Beispiel:
+        //
+        // new Window(1, WindowMode.Windowed);
+        //
+        //========================================================
 
-        public Window()
+        public Window(int resolution = 1,
+            WindowMode mode = WindowMode.Windowed)
         {
             // ----------------------------------------------------
-            // Die aktuelle Bildschirmauflösung ermitteln.
+            // Die aktuelle Bildschirmauflösung setzen
+            //
+            // Die eigentliche Auswahl passiert in SetResolution().
             // ----------------------------------------------------
+            SetResolution(resolution);
 
-            Width = GetSystemMetrics(
-                SM_CXSCREEN
-            );
+            //----------------------------------------------------
+            //Gewünschten FensterModus speichern
+            //----------------------------------------------------
+            Mode = mode;
 
-            Height = GetSystemMetrics(
-                SM_CYSCREEN
-            );
-
-            if (Width <= 0 || Height <= 0)
-            {
-                throw new Exception(
-                    "Die Bildschirmauflösung konnte nicht ermittelt werden."
-                );
-            }
-
-            Logger.Info(
-                $"Fullscreen-Auflösung: {Width}x{Height}"
-            );
-
-
-            // ----------------------------------------------------
+            //----------------------------------------------------
             // Unsere eigene Windows-Funktion speichern.
-            // ----------------------------------------------------
+            //----------------------------------------------------
 
             wndProc = WindowProcedure;
 
 
-            // ----------------------------------------------------
+            //----------------------------------------------------
             // Die Instanz unseres Programms holen.
-            // ----------------------------------------------------
+            //----------------------------------------------------
 
             IntPtr instance = GetModuleHandle(null);
 
@@ -225,78 +348,67 @@ namespace D007Adventure.Graphics
             }
 
 
-            // ----------------------------------------------------
+            //----------------------------------------------------
             // Windows-Fensterklasse erstellen.
-            // ----------------------------------------------------
-
+            // Wir erstellen zun#chst ein normales Fenster.
+            //
+            // Danach wird SetWindowMode() verwendet, um den Modus
+            // einzustellen
+            //----------------------------------------------------
             WNDCLASSEX windowClass = new WNDCLASSEX();
 
             windowClass.cbSize =
                 (uint)Marshal.SizeOf<WNDCLASSEX>();
 
-            windowClass.style =
-                CS_HREDRAW | CS_VREDRAW;
+            windowClass.style = CS_HREDRAW | CS_VREDRAW;
 
-            windowClass.lpfnWndProc =
-                wndProc;
+            windowClass.lpfnWndProc = wndProc;
 
-            windowClass.hInstance =
-                instance;
+            windowClass.hInstance = instance;
 
-            windowClass.hCursor =
-                LoadCursor(
-                    IntPtr.Zero,
-                    IDC_ARROW
+            windowClass.hCursor = LoadCursor(
+                IntPtr.Zero,
+                IDC_ARROW
                 );
 
+            // Interner Fensterklassenname
             windowClass.lpszClassName =
                 "D007AdventureWindow";
 
+            //----------------------------------------------------
+            // Windows-Fensterklasse registrieren.
+            //----------------------------------------------------
 
-            // ----------------------------------------------------
-            // Fensterklasse bei Windows registrieren.
-            // ----------------------------------------------------
-
+            // Sichtbarer Fenstertitel
             ushort result = RegisterClassEx(
                 ref windowClass
-            );
+                );
 
-            if (result == 0)
+            if(result == 0)
             {
                 throw new Exception(
-                    "Die Fensterklasse konnte nicht registriert werden."
-                );
+                    $"Die Fensterklasse konnte nicht erstellt werden.");
             }
 
-
-            // ----------------------------------------------------
-            // Das eigentliche Fullscreen-Fenster erstellen.
-            // ----------------------------------------------------
-
+            //----------------------------------------------------
+            // Fenster erstellen.
+            //----------------------------------------------------
             handle = CreateWindowEx(
                 0,
-
-                // Interner Name der Fensterklasse.
+                // Interner Name der Fensterklasse
                 "D007AdventureWindow",
 
-                // Sichtbarer Fenstertitel.
+                // Sichtbarer Fenstertitel
                 "D007 Adventure",
 
-                // WS_POPUP bedeutet:
-                //
-                // Kein Rahmen
-                // Keine Titelleiste
-                // Kein Fensterrand
-                //
-                // Dadurch erhalten wir ein randloses
-                // Fullscreen-Fenster.
-                WS_POPUP,
+                // Standardmäßig erstllen wir ein normales Fenster
+                WS_OVERLAPPEDWINDOW,
 
-                // Position des Fensters.
-                0,
-                0,
+                // Startposition
+                100,
+                100,
 
-                // Größe des Fensters.
+                // Größe
                 Width,
                 Height,
 
@@ -304,49 +416,364 @@ namespace D007Adventure.Graphics
                 IntPtr.Zero,
                 instance,
                 IntPtr.Zero
-            );
+                );
 
-
-            // ----------------------------------------------------
-            // Prüfen, ob das Fenster erfolgreich erstellt wurde.
-            // ----------------------------------------------------
-
+            //----------------------------------------------------
+            // Prüfen ob das Fenster erfolgreich erstellt wurde
+            //----------------------------------------------------
             if (handle == IntPtr.Zero)
             {
+                int errorCode = Marshal.GetLastWin32Error();
                 throw new Exception(
-                    "Das Fullscreen-Fenster konnte nicht erstellt werden."
-                );
+                    $"Das Fenster konnte nicht Erstellt werden." +
+                    $"Win32-Fehlercode: {errorCode}"
+                    );
             }
 
+            //----------------------------------------------------
+            // Den gewünschten Fenstermodus setzten
+            //----------------------------------------------------
+            SetWindowMode(mode);
 
-            // ----------------------------------------------------
-            // Fenster sichtbar machen.
-            // ----------------------------------------------------
-
+            //----------------------------------------------------
+            // Fenster Sichtbar machen
+            //----------------------------------------------------
             ShowWindow(
                 handle,
                 SW_SHOW
-            );
+                );
 
+            //----------------------------------------------------
+            // Fenster aktualisieren
+            //----------------------------------------------------
+            UpdateWindow(handle);
 
-            // ----------------------------------------------------
-            // Fenster aktualisieren.
-            // ----------------------------------------------------
+            Logger.Info($"Fenster wurde erstellt: " +
+                        $"{Width}x{Height} - {Mode}");
+        }
+
+            //====================================================
+            // SET RESOLUTION
+            //====================================================
+            //
+            // Hier wird die Auflösung über einen switch
+            // ausgewählt.
+            //
+            // Dadurch müssen wir im restlichen Programm nicht 
+            // überall mit festen Werten wie 1920 oder 1080
+            // arbeiten.
+            //
+            // Auflösung:
+            //
+            // 0 = 1280x720
+            // 1 = 1920x1080
+            // 2 = 2560x1440
+            // 3 = ScreenRes
+            //
+            // Weitere Auflösungen können hier ergänzt werden.
+            //====================================================
+            public void SetResolution(int resolution)
+            {
+                switch(resolution)
+                {
+                //----------------------------------------------------
+                // 1280x720
+                //----------------------------------------------------
+                case 0:
+                    Width = 1280;
+                    Height = 720;
+                    break;
+                //----------------------------------------------------
+                // 1920x1080
+                //----------------------------------------------------
+                case 1:
+                    Width = 1920;
+                    Height = 1080;
+                    break;
+
+                //----------------------------------------------------
+                // 2560x1440
+                //----------------------------------------------------
+                case 2:
+                    Width = 2560;
+                    Height = 1440;
+                    break;
+
+                //----------------------------------------------------
+                // Native Auflösung
+                //----------------------------------------------------
+                case 3:
+                    Width = GetSystemMetrics(SM_CXSCREEN);
+                    Height = GetSystemMetrics(SM_CYSCREEN);
+                    break;
+
+                //----------------------------------------------------
+                // Default
+                //
+                //Ungültige Auflösung.
+                //
+                //Wir verwenden als Standard
+                // 800x600
+                //----------------------------------------------------
+                default:
+                    Logger.Info($"Unbekannte Auflösung: {resolution}." +
+                        "800x600 wird verwendet"
+                        );
+
+                    Width = 800;
+                    Height = 600;
+
+                    break;
+                }
+
+            //--------------------------------------------------------
+            // Speichern, welche Auflösung gewählt wurde.
+            //--------------------------------------------------------
+            Resolution = resolution;
+
+            //--------------------------------------------------------
+            // Wenn bereits ein Fenster existiert, müssen wir
+            // dessen tatsächliche Größe ebenfalls ändern.
+            //
+            // Beim Konstruktor existiert das Fenster noch nicht
+            // deshalb wird dieser Teil übersprungen
+            //--------------------------------------------------------
+                if (handle != IntPtr.Zero)
+                {
+                    ApplyWindowSize();
+                }
+
+                Logger.Info($"Auflösung geändert: {Width}x{Height}");
+            }
+
+        //========================================================
+        //SET WINDOW MODE
+        //========================================================
+        // 
+        // Diese Methode schaltet zwischen
+        //
+        // Windowed
+        // Borderless
+        // Fullscreen
+        //
+        // um.
+        //
+        // Die Methode kann jederzeit während des Spiels
+        // aufgerufen werden.
+        //========================================================
+        public void SetWindowMode(
+            WindowMode mode)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Den gewünschten Modus wählen
+            //--------------------------------------------------------
+            switch (mode)
+            {
+                //========================================================
+                // NORMALES FENSTER
+                //========================================================
+                case WindowMode.Windowed:
+                    // WS_OVERLAPPEDWINDOW aktiviert:
+                    //
+                    // Titelleiste
+                    // Rahmen
+                    // Minimieren
+                    // Maximieren
+                    // Schließen
+                    SetWindowLongPtr(
+                        handle,
+                        GWL_STYLE,
+                        new IntPtr(
+                            unchecked(
+                            (int)WS_OVERLAPPEDWINDOW
+                            )
+                        )
+                    );
+
+                    //--------------------------------------------------------
+                    // Fenstergröße aus der gewählten Auflösung verwenden
+                    //--------------------------------------------------------
+                    ApplyWindowSize();
+
+                    break;
+
+                //========================================================
+                // RAHMENLOSES FENSTER
+                //========================================================
+                case WindowMode.Borderless:
+
+                    // WS_POPUP entfernt:
+                    //
+                    // Rahmen
+                    // Titelleiste
+                    //
+                    // Das Fenster bleibt aber weiterhin ein normales
+                    // Windows-Fenster und kann kleiner als der Screen sein.
+                    SetWindowLongPtr(
+                        handle,
+                        GWL_STYLE,
+                        new IntPtr(
+                            unchecked(
+                            (int)WS_POPUP
+                            )
+                        )
+                    );
+
+                    //----------------------------------------------------
+                    // Fenster auf die gewünschte Größe setzten
+                    // und mittig auf dem Bildschirm ausgeben.
+                    //----------------------------------------------------
+                    ApplyWindowSize();
+                    break;
+
+                //========================================================
+                // FULLSCREEN FENSTER
+                //========================================================
+                case WindowMode.Fullscreen:
+                    // Fullscreen verwendet ebenfalls WS_POPUP:
+                    //
+                    // Der Unterschied zu Rahmenlos ist:
+                    //
+                    // Das Fenster wird auf der komplette Bildschirmgrüße
+                    // ausgegeben.
+                    SetWindowLongPtr(
+                        handle,
+                        GWL_STYLE,
+                        new IntPtr(
+                            unchecked(
+                            (int)WS_POPUP
+                            )
+                        )
+                    );
+
+                    //----------------------------------------------------
+                    // Native Bildschirmgröße ermitteln.
+                    //----------------------------------------------------
+                    int screenWidth =
+                        GetSystemMetrics(
+                            SM_CXSCREEN
+                            );
+
+                    int screenHeight =
+                        GetSystemMetrics(
+                            SM_CYSCREEN
+                            );
+
+                    //----------------------------------------------------
+                    // Fullscreen auf dem kompletten Bildschirm ausgeben.
+                    //----------------------------------------------------
+                    SetWindowPos(
+                        handle,
+                        HWND_TOP,
+                        0,
+                        0,
+                        screenWidth,
+                        screenHeight,
+                        SWP_FRAMECHANGED |
+                        SWP_SHOWWINDOW
+                        );
+
+                    //----------------------------------------------------
+                    // Width und Heigth müssen ebenfalls die tatsächliche
+                    // Fenstergröße ausgeben.
+                    //----------------------------------------------------
+                    Width = screenWidth;
+                    Height = screenHeight;
+
+                    break;
+
+                //========================================================
+                // UNBEKANNTER MODUS
+                //========================================================
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(mode)
+                        );
+            }
+
+            //----------------------------------------------------
+            // Den aktuellen Modus speichern.                    
+            //----------------------------------------------------
+            Mode = mode;
+
+            //----------------------------------------------------
+            // Windows soll das Fenster nach Änderungen neu
+            // zeichnen.
+            //----------------------------------------------------
+            ShowWindow(
+                handle,
+                SW_SHOW
+                );
 
             UpdateWindow(
                 handle
-            );
-
+                );
 
             Logger.Info(
-                "Fullscreen-Fenster wurde erstellt."
-            );
+                $"Fenstermodus geändert: " +
+                $"{Mode} - {Width}x{Height}"
+                );
+            }
+
+        //========================================================
+        // APPLY WINDOW SIZE
+        //========================================================
+        //
+        // Diese Methode setzt die aktuelle Width/Height auf das 
+        // Windows-Fenster.
+        // 
+        // Bei Windowed und Borderless wird das Fenster außerdem 
+        // in der mitte des Bildschirms ausgegeben
+        //========================================================
+        private void ApplyWindowSize()
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            //----------------------------------------------------
+            // Aktuelle Bildschirmgrößer ermitteln.
+            //----------------------------------------------------
+            int screenWidth =
+                GetSystemMetrics(
+                    SM_CXSCREEN
+                    );
+
+            int screenHeight =
+                GetSystemMetrics(
+                    SM_CYSCREEN
+                    );
+
+            //----------------------------------------------------
+            // Fenster mittig auf dem Bildschirm ausgeben
+            //----------------------------------------------------
+            int x = (screenWidth - Width) / 2;
+            int y = (screenHeight - Height) / 2;
+
+            //----------------------------------------------------
+            // Fenstergröße und Position übergeben
+            //----------------------------------------------------
+            SetWindowPos(
+                handle,
+                HWND_TOP,
+                x,
+                y,
+                Width,
+                Height,
+                SWP_FRAMECHANGED |
+                SWP_SHOWWINDOW
+                );
         }
 
-
-        // ========================================================
-        // PROCESS MESSAGES
-        // ========================================================
+        //========================================================
+        //PROCESS MESSAGES
+        //========================================================
         //
         // Windows schickt Nachrichten an unser Fenster.
         //
@@ -358,8 +785,7 @@ namespace D007Adventure.Graphics
         // - Fenster bewegen
         //
         // Diese Nachrichten müssen wir regelmäßig verarbeiten.
-        // ========================================================
-
+        //========================================================
         public void ProcessMessages()
         {
             MSG message;
@@ -373,14 +799,14 @@ namespace D007Adventure.Graphics
                 0,
                 PM_REMOVE))
             {
-                // ------------------------------------------------
+                //------------------------------------------------
                 // WM_QUIT ist keine normale Fensternachricht.
                 //
                 // Sie wird nicht an WindowProcedure geschickt.
                 // Deshalb dürfen wir sie hier nicht mit
                 // TranslateMessage() und DispatchMessage()
                 // weiterverarbeiten.
-                // ------------------------------------------------
+                //------------------------------------------------
 
                 if (message.message == WM_QUIT)
                 {
@@ -389,18 +815,18 @@ namespace D007Adventure.Graphics
                 }
 
 
-                // ------------------------------------------------
+                //------------------------------------------------
                 // Nachricht übersetzen.
-                // ------------------------------------------------
+                //------------------------------------------------
 
                 TranslateMessage(
                     ref message
-                );
+                    );
 
 
-                // ------------------------------------------------
+                //------------------------------------------------
                 // Nachricht an Windows zurückgeben.
-                // ------------------------------------------------
+                //------------------------------------------------
 
                 DispatchMessage(
                     ref message
@@ -408,10 +834,9 @@ namespace D007Adventure.Graphics
             }
         }
 
-
-        // ========================================================
+        //========================================================
         // QUIT
-        // ========================================================
+        //========================================================
         //
         // Beendet unser Fenster sofort.
         //
@@ -419,7 +844,7 @@ namespace D007Adventure.Graphics
         // Dadurch kann Windows den Desktop dahinter neu zeichnen.
         //
         // Danach wird das eigentliche Fenster zerstört.
-        // ========================================================
+        //========================================================
 
         public void Quit()
         {
@@ -449,15 +874,14 @@ namespace D007Adventure.Graphics
             PostQuitMessage(0);
         }
 
-
-        // ========================================================
+        //========================================================
         // CLOSE
-        // ========================================================
+        //========================================================
         //
         // Wird beim endgültigen Aufräumen des Spiels verwendet.
         //
         // Close() ist absichtlich sicher mehrfach aufrufbar.
-        // ========================================================
+        //========================================================
 
         public void Close()
         {
@@ -478,14 +902,18 @@ namespace D007Adventure.Graphics
             }
         }
 
-
-        // ========================================================
+        //========================================================
         // WINDOW PROCEDURE
-        // ========================================================
+        //========================================================
         //
         // Windows ruft diese Methode automatisch auf,
         // wenn etwas mit unserem Fenster passiert.
-        // ========================================================
+        //
+        // Zum Beispiel:
+        //
+        // WM_CLOSE:
+        // 
+        //========================================================
 
         private IntPtr WindowProcedure(
             IntPtr hwnd,
@@ -493,56 +921,55 @@ namespace D007Adventure.Graphics
             IntPtr wParam,
             IntPtr lParam)
         {
-            // ----------------------------------------------------
-            // Der Benutzer möchte das Fenster schließen.
-            // ----------------------------------------------------
-
-            if (message == WM_CLOSE)
+            switch (message)
             {
-                ShouldClose = true;
+                //----------------------------------------------------
+                // Der Benutzer möchte das Fenster schließen.
+                //----------------------------------------------------
 
-                // Fenster zerstören.
-                //
-                // Dadurch entsteht anschließend WM_DESTROY.
-                DestroyWindow(hwnd);
+                case WM_CLOSE:
+                    {
+                        ShouldClose = true;
 
-                return IntPtr.Zero;
+                        // Fenster zerstören.
+                        //
+                        // Dadurch entsteht anschließend WM_DESTROY.
+                        DestroyWindow(hwnd);
+
+                        return IntPtr.Zero;
+                    }
+
+                //----------------------------------------------------
+                // Das Fenster wurde tatsächlich zerstört.
+                //----------------------------------------------------
+
+                case WM_DESTROY:
+                    {
+                        ShouldClose = true;
+
+                        // Die Game Loop muss über WM_QUIT erfahren,
+                        // dass das Fenster nicht mehr existiert.
+                        PostQuitMessage(0);
+
+                        return IntPtr.Zero;
+                    }
             }
 
-
-            // ----------------------------------------------------
-            // Das Fenster wurde tatsächlich zerstört.
-            // ----------------------------------------------------
-
-            if (message == WM_DESTROY)
-            {
-                ShouldClose = true;
-
-                // Die Game Loop muss über WM_QUIT erfahren,
-                // dass das Fenster nicht mehr existiert.
-                PostQuitMessage(0);
-
-                return IntPtr.Zero;
-            }
-
-
-            // ----------------------------------------------------
+            //----------------------------------------------------
             // Alle Nachrichten, die wir nicht selbst behandeln,
             // werden an Windows weitergegeben.
-            // ----------------------------------------------------
-
+            //----------------------------------------------------
             return DefWindowProc(
                 hwnd,
                 message,
                 wParam,
                 lParam
-            );
+                );
         }
 
-
-        // ========================================================
+        //========================================================
         // WINDOW PROCEDURE DELEGATE
-        // ========================================================
+        //========================================================
 
         [UnmanagedFunctionPointer(
             CallingConvention.Winapi)]
@@ -552,10 +979,9 @@ namespace D007Adventure.Graphics
             IntPtr wParam,
             IntPtr lParam);
 
-
-        // ========================================================
+        //========================================================
         // WINDOWS WINDOW CLASS
-        // ========================================================
+        //========================================================
 
         [StructLayout(LayoutKind.Sequential)]
         private struct WNDCLASSEX
@@ -578,19 +1004,18 @@ namespace D007Adventure.Graphics
 
             public IntPtr hbrBackground;
 
-            [MarshalAs(UnmanagedType.LPStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public string lpszMenuName;
 
-            [MarshalAs(UnmanagedType.LPStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public string lpszClassName;
 
             public IntPtr hIconSm;
         }
 
-
-        // ========================================================
+        //========================================================
         // WINDOWS MESSAGE
-        // ========================================================
+        //========================================================
 
         [StructLayout(LayoutKind.Sequential)]
         private struct MSG

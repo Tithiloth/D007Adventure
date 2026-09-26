@@ -74,7 +74,6 @@ namespace D007Adventure
         private bool showGraphicsMenu = false;
         private bool showSoundOptionsMenu = false;
         private bool showControlsOptionsMenu = false;
-        private bool isClicked = false;
 
         // Maus-Input-System.
         private readonly Mouse mouse;
@@ -86,7 +85,9 @@ namespace D007Adventure
         public Game()
         {
             // Wir erstellen das Fenster.
-            window = new Window();
+            window = new Window(
+                1,
+                WindowMode.Windowed);
 
             // Wir erstellen den Renderer.
             renderer = new Renderer2D(window);
@@ -328,26 +329,100 @@ namespace D007Adventure
                     {
                         graphicsOptions.Draw();
                        
-                        if(mouse.LeftButtonDown &&
+                        if(mouse.LeftButtonPressed &&
                             mouse.X >= 768 &&
                             mouse.X <= 842 &&
                             mouse.Y >= 201 &&
                             mouse.Y <= 264)
                         {
-
-                            isClicked = true;
-
-                            if (isClicked)
-                            {
-                                graphicsOptions.pullDown = true;
-                                graphicsOptions.Draw();
-                                isClicked = true;
-                            }
-                            isClicked = false;
+                            graphicsOptions.pullDownModi = !graphicsOptions.pullDownModi;
+                            graphicsOptions.pullDownRes = false;
                         }
-                        else
+
+                        // Umschalten  zu Windowed
+                        if (graphicsOptions.pullDownModi)
                         {
-                           graphicsOptions.pullDown = false;
+                            if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 264 &&
+                                mouse.Y <= 327
+                                )
+                            {
+                                window.SetWindowMode(WindowMode.Windowed);
+                                graphicsOptions.pullDownModi = false;
+                            }
+
+                            // Umschalten zu Borderless
+                            else if (mouse.LeftButtonPressed &&
+                            mouse.X >= 512 &&
+                            mouse.X <= 768 &&
+                            mouse.Y >= 328 &&
+                            mouse.Y <= 391
+                            )
+                            {
+                                window.SetWindowMode(WindowMode.Borderless);
+                                graphicsOptions.pullDownModi = false;
+                            }
+
+                            //Umsshalten zu Fullscreen
+                            else if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 392 &&
+                                mouse.Y <= 456)
+                            {
+                                window.SetWindowMode(WindowMode.Fullscreen);
+                                graphicsOptions.pullDownModi = false;
+                            }
+                        }
+
+                        if (mouse.LeftButtonPressed &&
+                            mouse.X >= 768 &&
+                            mouse.X <= 842 &&
+                            mouse.Y >= 301 &&
+                            mouse.Y <= 364)
+                        {
+                            graphicsOptions.pullDownRes = !graphicsOptions.pullDownRes;
+                            graphicsOptions.pullDownModi = false;
+                        }
+
+                        // Umschalten  zu 720p
+                        if (graphicsOptions.pullDownRes)
+                        {
+                            if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 364 &&
+                                mouse.Y <= 427
+                                )
+                            {
+                                window.SetResolution(0);
+                                graphicsOptions.pullDownRes = false;
+                            }
+
+                            // Umschalten zu 1080i
+                            else if (mouse.LeftButtonPressed &&
+                            mouse.X >= 512 &&
+                            mouse.X <= 768 &&
+                            mouse.Y >= 428 &&
+                            mouse.Y <= 491
+                            )
+                            {
+                                window.SetResolution(1);
+                                graphicsOptions.pullDownRes = false;
+                            }
+
+                            //Umsshalten zu 1440
+                            else if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 492 &&
+                                mouse.Y <= 556)
+                            {
+                                window.SetResolution(2);
+                                graphicsOptions.pullDownRes = false;
+                            }
                         }
                     }
                     else if (showSoundOptionsMenu)

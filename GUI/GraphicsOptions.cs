@@ -11,9 +11,15 @@ namespace D007Adventure.GUI
     {
         private IntPtr background;
         private IntPtr modus;
+        private IntPtr windowed;
+        private IntPtr borderless;
+        private IntPtr fullscreen;
+        private IntPtr resolution;
+        private IntPtr res720i;
+        private IntPtr res1080p;
+        private IntPtr res1440;
         private IntPtr drop;
         public IntPtr pulldown;
-        private IntPtr resolution;
         private IntPtr vsync;
         private IntPtr check;
         private IntPtr checkp;
@@ -21,7 +27,8 @@ namespace D007Adventure.GUI
         private readonly D007Adventure.Input.Input input;
         private readonly Renderer2D renderer;
 
-        public bool pullDown = false;
+        public bool pullDownModi = false;
+        public bool pullDownRes = false;
 
         public GraphicsOptions(
             ImageLoader imageLoader,
@@ -48,16 +55,40 @@ namespace D007Adventure.GUI
                 "Assets/Options/GraphicsOptions/Drop.png"
                 );
 
-            pulldown = imageLoader.Load(
-                "Assets/Options/GraphicsOptions/PullDown.png"
-                );
-
             resolution = imageLoader.Load(
                 "Assets/Options/GraphicsOptions/Resolution.png"
                 );
 
             vsync = imageLoader.Load(
                 "Assets/Options/GraphicsOptions/VSync.png"
+                );
+
+            pulldown = imageLoader.Load(
+                "Assets/Options/GraphicsOptions/PullDown.png"
+                );
+
+            windowed = imageLoader.Load(
+                "Assets/Buttons/Windowed.png"
+                );
+
+            borderless = imageLoader.Load(
+                "Assets/Buttons/Borderless.png"
+                );
+
+            fullscreen = imageLoader.Load(
+                "Assets/Buttons/Fullscreen.png"
+                );
+
+            res720i = imageLoader.Load(
+                "Assets/Buttons/720i.png"
+                );
+
+            res1080p = imageLoader.Load(
+                "Assets/Buttons/1080p.png"
+                );
+
+            res1440 = imageLoader.Load(
+                "Assets/Buttons/1440.png"
                 );
 
             check = imageLoader.Load(
@@ -130,13 +161,50 @@ namespace D007Adventure.GUI
                 512, 400, 64, 64
                 );
 
-            if (pullDown)
+            if (pullDownModi)
             {
                 renderer.DrawImage(
                     pulldown,
-                    512, 264, 256, 256
+                    512, 264, 256, 192
                     );
-                return;
+
+                renderer.DrawImage(
+                    windowed,
+                    512, 264, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    borderless,
+                    512, 328, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    fullscreen,
+                    512, 392, 256, 64
+                    );
+            }
+
+            if(pullDownRes)
+            {
+                renderer.DrawImage(
+                pulldown,
+                    512, 364, 256, 192
+                    );
+
+                renderer.DrawImage(
+                    res720i,
+                    512, 364, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    res1080p,
+                    512, 428, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    res1440,
+                    512, 492, 256, 64
+                    );
             }
         }
 
