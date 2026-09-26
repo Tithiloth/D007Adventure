@@ -54,6 +54,7 @@ namespace D007Adventure.Graphics
         // Titelleiste, Rahmen, Fensterrand.
         // Minimieren, Maximieren, Schließen.
         private const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
+        private const uint WS_EX_OVERLAPPEDWINDOW = 0x00000300;
 
         // Fenster ohne Rahmen, Titelleiste und Fensterrand.
         //
@@ -112,6 +113,12 @@ namespace D007Adventure.Graphics
 
         // Fenster nach der Änderung anzeigen.
         private const uint SWP_SHOWWINDOW = 0x0040;
+
+        //--------------------------------------------------------
+        //Maus Konstanten
+        //--------------------------------------------------------
+        private const int VirtualWidth = 1920;
+        private const int VirtualHeight = 1080;
 
         //--------------------------------------------------------
         // SetWindowLongPtr() Konstanten.
@@ -225,6 +232,11 @@ namespace D007Adventure.Graphics
         private static extern int GetSystemMetrics(
             int index);
 
+        [DllImport("user32.dll")]
+        private static extern bool GetClientRect(
+            IntPtr window,
+            out RECT rectangle);
+
         //---------------------------------------------------------
         // Ändert den Fensterstil.
         //
@@ -249,6 +261,23 @@ namespace D007Adventure.Graphics
             int width,
             int height,
             uint flags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool AdjustWindowRectEx(
+            ref RECT rectangle,
+            uint style,
+            bool hasMenu,
+            uint exStyle);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
 
         //========================================================
         // FELDER
@@ -540,7 +569,14 @@ namespace D007Adventure.Graphics
             //--------------------------------------------------------
                 if (handle != IntPtr.Zero)
                 {
-                    ApplyWindowSize();
+                    if (Mode == WindowMode.Fullscreen)
+                    {
+                        SetWindowMode(WindowMode.Fullscreen);
+                    }
+                    else
+                    {
+                        ApplyWindowSize();
+                    }
                 }
 
                 Logger.Info($"Auflösung geändert: {Width}x{Height}");
@@ -682,8 +718,6 @@ namespace D007Adventure.Graphics
                     // Width und Heigth müssen ebenfalls die tatsächliche
                     // Fenstergröße ausgeben.
                     //----------------------------------------------------
-                    Width = screenWidth;
-                    Height = screenHeight;
 
                     break;
 
@@ -753,8 +787,41 @@ namespace D007Adventure.Graphics
             //----------------------------------------------------
             // Fenster mittig auf dem Bildschirm ausgeben
             //----------------------------------------------------
-            int x = (screenWidth - Width) / 2;
-            int y = (screenHeight - Height) / 2;
+            int windowWidth = Width;
+            int windowHeight = Height;
+
+            if(Mode == WindowMode.Windowed)
+            {
+                RECT rectangle = new RECT
+                {
+                    Left = 0,
+                    Top = 0,
+                    Right = Width,
+                    Bottom = Height
+                };
+
+                bool sucess = AdjustWindowRectEx(
+                    ref rectangle,
+                    WS_OVERLAPPEDWINDOW,
+                    false,
+                    0
+                    );
+
+                if(sucess)
+                {
+                    windowWidth =
+                        rectangle.Right - rectangle.Left;
+
+                    windowHeight =
+                        rectangle.Bottom - rectangle.Top;
+                }
+            }
+
+            int x =
+            (screenWidth - windowWidth) / 2;
+
+            int y =
+                (screenHeight - windowHeight) / 2;
 
             //----------------------------------------------------
             // Fenstergröße und Position übergeben
@@ -770,6 +837,74 @@ namespace D007Adventure.Graphics
                 SWP_SHOWWINDOW
                 );
         }
+
+        //========================================================
+        // SCREENTOVIRTUAL
+        //========================================================
+        //
+        // Bei Veränderungen der virtuellen Auflösung müssen auch 
+        // die Mauskoordinaten angepasst werden. 
+        //
+        // Beispiel:
+        //
+        // Aktuelle Auflösung: 1920x1080
+        // Buttonposition: 300x300
+        // KlickEvent auf X: 300-556
+        // Klickevent auf Y: 300-263
+        // Auflösung wird geändert auf: 1280x720
+        // Buttonposition: 250x250
+        // KlickEvents bleiben aber unverändert
+        //
+        //========================================================
+        public void ScreenToVirtual(
+            int screenX,
+            int screenY,
+            out int virtualX,
+            out int virtualY)
+        {
+            virtualX = 0;
+            virtualY = 0;
+
+            if(handle == IntPtr.Zero)
+            {
+                return;
+            }
+            if(!GetClientRect(
+                handle,
+                out RECT clientRect))
+            {
+                return;
+            }
+
+            int clientWidth =
+                clientRect.Right - clientRect.Left;
+
+            int clientHeight =
+                clientRect.Bottom - clientRect.Top;
+
+            if(clientWidth <= 0 ||clientHeight <= 0)
+            {
+                return;
+            }
+
+            float scaleX = (float)clientWidth / VirtualWidth;
+
+            float scaleY = (float)clientHeight / VirtualHeight;
+
+            float scale = Math.Min(scaleX, scaleY);
+
+            int destinationWidth = (int)(VirtualWidth * scale);
+            int destinationHeight = (int)(VirtualHeight * scale);
+
+            int destinationX =
+                (clientWidth - destinationWidth) / 2;
+            int destinationY =
+                (clientHeight - destinationHeight) / 2;
+
+            virtualX = (int)((screenX - destinationX) / scale);
+            virtualY = (int)((screenY - destinationY) / scale);
+        }
+        
 
         //========================================================
         //PROCESS MESSAGES

@@ -275,11 +275,22 @@ namespace D007Adventure.Input
                 return;
             }
 
+            //---------------------------------------------------------
+            // CLientkoordinaten in unsere virtuellen 1920x1080-
+            // Koordinaten umwandeln
+            // 
+            // Dabei weren Skalierung und Letterboxing berücksichtigt
+            //---------------------------------------------------------
+            window.ScreenToVirtual(
+                point.X,
+                point.Y,
+                out int virtualX,
+                out int virtualY
+                );
 
-            X = point.X;
-            Y = point.Y;
+            X = virtualX;
+            Y = virtualY;
         }
-
 
         // ========================================================
         // POINT

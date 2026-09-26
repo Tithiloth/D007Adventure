@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace D007Adventure.Graphics
 {
-    // ============================================================
+    //============================================================
     // RENDERER 2D
-    // ============================================================
+    //============================================================
     //
     // Der Renderer ist dafür verantwortlich, Dinge auf den
     // Bildschirm zu zeichnen.
@@ -23,15 +23,43 @@ namespace D007Adventure.Graphics
     //
     //     Zeichne Spieler bei (100, 200)
     //
-    // ============================================================
+    //============================================================
 
     public class Renderer2D
     {
         private readonly Window window;
 
+        //============================================================
+        // VIRTUELLE AUFLÖSUNG
+        //============================================================
+        //
+        // Das ist die Auflösung, mit der das Spiel intern arbeitet.
+        // 
+        // Alle Positionen und Größen im Spiel beziehen sich auf
+        // diese Auflösung
+        //
+        // Beispiel:
+        //
+        // DrawImage(player, 500, 300, 64,64)
+        //
+        // Bleibt immer 500, 300 und 64x64
+        //
+        //============================================================
+        private const int VirtualWidht = 1920;
+        private const int VirtualHeight = 1080;
+
+        //============================================================
+        // WINDOW DC
+        //============================================================
+        //
         // Device Context des eigentlichen Fensters.
+        //
+        //============================================================
         private IntPtr windowDC;
 
+        //========================================================
+        // BACKBUFFER
+        //========================================================
         // Device Context unseres Backbuffers.
         private IntPtr backBufferDC;
 
@@ -44,9 +72,9 @@ namespace D007Adventure.Graphics
         private IntPtr oldBackBufferBitmap;
 
 
-        // ========================================================
+        //========================================================
         // KONSTRUKTOR
-        // ========================================================
+        //========================================================
 
         public Renderer2D(Window window)
         {
@@ -56,16 +84,16 @@ namespace D007Adventure.Graphics
         }
 
 
-        // ========================================================
+        //========================================================
         // BEGIN
-        // ========================================================
+        //========================================================
         //
         // Hier wird ein neuer Frame vorbereitet.
         //
         // Der Backbuffer wird zuerst mit der Hintergrundfarbe
         // Hellblau gefüllt.
         //
-        // ========================================================
+        //========================================================
 
         public void Begin()
         {
@@ -76,7 +104,7 @@ namespace D007Adventure.Graphics
 
             IntPtr brush = CreateSolidBrush(
                 RGB(173, 216, 230)
-            );
+                );
 
             if (brush == IntPtr.Zero)
             {
@@ -87,30 +115,30 @@ namespace D007Adventure.Graphics
             {
                 Left = 0,
                 Top = 0,
-                Right = window.Width,
-                Bottom = window.Height
+                Right = VirtualWidht,
+                Bottom = VirtualHeight
             };
 
             FillRect(
                 backBufferDC,
                 ref rectangle,
                 brush
-            );
+                );
 
             DeleteObject(brush);
         }
 
 
-        // ========================================================
+        //========================================================
         // END
-        // ========================================================
+        //========================================================
         //
         // Hier wird der aktuelle Frame beendet.
         //
         // Der Inhalt des Backbuffers wird auf das Fenster
         // kopiert.
         //
-        // ========================================================
+        //========================================================
 
         public void End()
         {
@@ -128,34 +156,111 @@ namespace D007Adventure.Graphics
 
             windowDC = GetDC(
                 window.Handle
-            );
+                );
 
             if (windowDC == IntPtr.Zero)
             {
                 return;
             }
 
-            BitBlt(
+            //----------------------------------------------------
+            // Tatsächlichen Client-Bereich des Fensters ermitteln.
+            //----------------------------------------------------
+            if(!GetClientRect(
+                window.Handle,
+                out RECT clientRect))
+            {
+                ReleaseDC(
+                    window.Handle,
+                    windowDC
+                    );
+
+                windowDC = IntPtr.Zero;
+                return;
+            }
+
+            int clientWidth =
+                clientRect.Right - clientRect.Left;
+
+            int clientHeight =
+                clientRect.Bottom - clientRect.Top;
+
+            if(clientWidth <= 0 || clientHeight <= 0)
+            {
+                ReleaseDC(
+                    window.Handle,
+                    windowDC
+                    );
+                windowDC = IntPtr.Zero;
+                return;
+            }
+
+            //----------------------------------------------------
+            // Seitenverhältnis berechnen.
+            //----------------------------------------------------
+            float scaleX = (float)clientWidth / VirtualWidht;
+            float scaleY = (float)clientHeight / VirtualHeight;
+
+            // Wir verwenden den kleineren Wert.
+            // Dadurch wird nichts verzerrt.
+            float scale = Math.Min(scaleX, scaleY);
+
+            int destinationWidth =
+                (int)(VirtualWidht * scale);
+
+            int destinationHeight =
+                (int)(VirtualHeight * scale);
+
+            //----------------------------------------------------
+            // Zentrieren.
+            //
+            // Dadurch entstehen bei einem anderen Seitenverhältnis
+            // schwarze Balken.
+            //----------------------------------------------------
+            int destinationX =
+                (clientWidth - destinationWidth) / 2;
+
+            int destinationY =
+                (clientHeight - destinationHeight) / 2;
+
+            //-----------------------------------------------------
+            // Stretch-Modus setzen.
+            //-----------------------------------------------------
+            SetStretchBltMode(
                 windowDC,
-                0,
-                0,
-                window.Width,
-                window.Height,
+                COLORONCOLOR
+                );
+
+            //----------------------------------------------------
+            // Virtuellen BackBuffer auf Bildschirm skallieren.
+            //----------------------------------------------------
+            bool success = StretchBlt(
+                windowDC,
+                destinationX,
+                destinationY,
+                destinationWidth,
+                destinationHeight,
+
                 backBufferDC,
                 0,
                 0,
+                VirtualWidht,
+                VirtualHeight,
+
                 SRCCOPY
-            );
+                );
+            if(!success)
+            {
+                Logger.Info("StretchBlt fehlgeschlagen");
+            }
 
             ReleaseDC(
                 window.Handle,
                 windowDC
-            );
+                );
 
-            // Der DC wurde bereits freigegeben.
             windowDC = IntPtr.Zero;
         }
-
 
         // ========================================================
         // DRAW RECTANGLE
@@ -237,7 +342,7 @@ namespace D007Adventure.Graphics
 
             IntPtr memoryDC = CreateCompatibleDC(
                 backBufferDC
-            );
+                );
 
             if (memoryDC == IntPtr.Zero)
             {
@@ -247,7 +352,7 @@ namespace D007Adventure.Graphics
             IntPtr oldObject = SelectObject(
                 memoryDC,
                 image
-            );
+                );
 
             if (oldObject == IntPtr.Zero)
             {
@@ -260,20 +365,6 @@ namespace D007Adventure.Graphics
             //
             // #FF00FF wird dabei transparent behandelt.
             // -------------------------------------------------------- 
-
-            TransparentBlt(
-                backBufferDC,
-                x,
-                y,
-                width,
-                height,
-                memoryDC,
-                0,
-                0,
-                width,
-                height,
-                RGB(255, 0, 255)
-            );
 
             bool success = TransparentBlt(
                 backBufferDC,
@@ -318,41 +409,48 @@ namespace D007Adventure.Graphics
             {
                 throw new Exception(
                     "Das Fenster besitzt keinen gültigen Handle."
-                );
+                    );
             }
 
             IntPtr screenDC = GetDC(
                 window.Handle
-            );
+                );
 
             if (screenDC == IntPtr.Zero)
             {
                 throw new Exception(
                     "Screen Device Context konnte nicht erstellt werden."
-                );
+                    );
             }
 
             backBufferDC = CreateCompatibleDC(
                 screenDC
-            );
+                );
 
             if (backBufferDC == IntPtr.Zero)
             {
                 ReleaseDC(
                     window.Handle,
                     screenDC
-                );
+                    );
 
                 throw new Exception(
                     "Back Buffer Device Context konnte nicht erstellt werden."
-                );
+                    );
             }
 
+            //----------------------------------------------------
+            // WICHTIG:
+            //
+            // Nicht window.Width/window.Height verwenden!
+            //
+            // Der Backbuffer verwendet unsere virtuelle Auflösung.
+            //----------------------------------------------------
             backBufferBitmap = CreateCompatibleBitmap(
                 screenDC,
-                window.Width,
-                window.Height
-            );
+                VirtualWidht,
+                VirtualHeight
+                );
 
             if (backBufferBitmap == IntPtr.Zero)
             {
@@ -362,17 +460,17 @@ namespace D007Adventure.Graphics
                 ReleaseDC(
                     window.Handle,
                     screenDC
-                );
+                    );
 
                 throw new Exception(
                     "Back Buffer Bitmap konnte nicht erstellt werden."
-                );
+                    );
             }
 
             oldBackBufferBitmap = SelectObject(
                 backBufferDC,
                 backBufferBitmap
-            );
+                );
 
             if (oldBackBufferBitmap == IntPtr.Zero)
             {
@@ -395,7 +493,7 @@ namespace D007Adventure.Graphics
             ReleaseDC(
                 window.Handle,
                 screenDC
-            );
+                );
         }
 
 
@@ -423,7 +521,7 @@ namespace D007Adventure.Graphics
                     ReleaseDC(
                         window.Handle,
                         windowDC
-                    );
+                        );
                 }
 
                 windowDC = IntPtr.Zero;
@@ -441,14 +539,14 @@ namespace D007Adventure.Graphics
                     SelectObject(
                         backBufferDC,
                         oldBackBufferBitmap
-                    );
+                        );
 
                     oldBackBufferBitmap = IntPtr.Zero;
                 }
 
                 DeleteDC(
                     backBufferDC
-                );
+                    );
 
                 backBufferDC = IntPtr.Zero;
             }
@@ -458,7 +556,7 @@ namespace D007Adventure.Graphics
             {
                 DeleteObject(
                     backBufferBitmap
-                );
+                    );
 
                 backBufferBitmap = IntPtr.Zero;
             }
@@ -513,6 +611,11 @@ namespace D007Adventure.Graphics
         [DllImport("user32.dll")]
         private static extern IntPtr GetDC(
             IntPtr window);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetClientRect(
+            IntPtr window,
+            out RECT rectangle);
 
 
         [DllImport("user32.dll")]
@@ -582,7 +685,7 @@ namespace D007Adventure.Graphics
 
 
         [DllImport("gdi32.dll")]
-        private static extern bool BitBlt(
+        private static extern bool StretchBlt(
             IntPtr destination,
             int x,
             int y,
@@ -591,8 +694,16 @@ namespace D007Adventure.Graphics
             IntPtr source,
             int sourceX,
             int sourceY,
+            int sourceWidth,
+            int sourceHeight,
             uint rasterOperation);
 
+        [DllImport("gdi32.dll")]
+        private static extern int SetStretchBltMode(
+            IntPtr deviceContext,
+            int stretchMode);
+
+        private const int COLORONCOLOR = 3;
 
         private const uint SRCCOPY = 0x00CC0020;
     }

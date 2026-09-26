@@ -9,6 +9,7 @@ namespace D007Adventure.GUI
 {
     internal class GraphicsOptions
     {
+        private readonly Window window;
         private IntPtr background;
         private IntPtr modus;
         private IntPtr windowed;
