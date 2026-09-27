@@ -20,7 +20,8 @@
             {
                 //Wenn setTier nicht angegeben ist und MaxTier nicht erreicht ist
                 Tier += 1;
-            }else if (Tier >= MaxTier) {
+            }else if (Tier >= MaxTier) 
+            {
                 //Wenn MaxTier schon erreicht ist: Error
                 Logger.Error($"Werkzeug {Name} konnte Upgrade nicht durchführen: {Name} hat höchstes Upgrade erreicht");
             }

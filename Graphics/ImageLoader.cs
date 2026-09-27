@@ -229,15 +229,6 @@ namespace D007Adventure.Graphics
         );
 
         [DllImport("gdiplus.dll")]
-
-        private static extern int GdiImageColorKey(
-            IntPtr image,
-            uint colorlow,
-            uint colorHigh
-        );
-
-
-        [DllImport("gdiplus.dll")]
         private static extern int GdipCreateHBITMAPFromBitmap(
             IntPtr bitmap,
             out IntPtr hBitmap,

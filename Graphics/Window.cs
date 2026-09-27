@@ -54,7 +54,6 @@ namespace D007Adventure.Graphics
         // Titelleiste, Rahmen, Fensterrand.
         // Minimieren, Maximieren, Schließen.
         private const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
-        private const uint WS_EX_OVERLAPPEDWINDOW = 0x00000300;
 
         // Fenster ohne Rahmen, Titelleiste und Fensterrand.
         //
@@ -79,6 +78,7 @@ namespace D007Adventure.Graphics
         private const uint WM_QUIT = 0x0012;
         private const uint WM_CLOSE = 0x0010;
         private const uint WM_DESTROY = 0x0002;
+        private const uint WM_CHAR = 0x0102;
 
         //--------------------------------------------------------
         // Windows Cursor Konstanten.
@@ -302,7 +302,7 @@ namespace D007Adventure.Graphics
         // Aktuelle Breite des Spielefensters
         public int Width { get; private set; }
 
-        // Agtuelle Höhe des Spielefensters
+        // Aktuelle Höhe des Spielefensters
         public int Height { get; private set; }
 
         // Gibt an, ob das Fenster geschlossen werden soll.
@@ -322,6 +322,9 @@ namespace D007Adventure.Graphics
         // Fenster zeichnen zu können.
         public IntPtr Handle => handle;
 
+        //Wird ausgelöst, wennn ein eingegebenes Zeichen 
+        //empfangen wird.
+        public event Action<char>? CharacterReceived;
 
         //========================================================
         // KONSTRUKTOR
@@ -800,14 +803,14 @@ namespace D007Adventure.Graphics
                     Bottom = Height
                 };
 
-                bool sucess = AdjustWindowRectEx(
+                bool success = AdjustWindowRectEx(
                     ref rectangle,
                     WS_OVERLAPPEDWINDOW,
                     false,
                     0
                     );
 
-                if(sucess)
+                if(success)
                 {
                     windowWidth =
                         rectangle.Right - rectangle.Left;
@@ -831,8 +834,8 @@ namespace D007Adventure.Graphics
                 HWND_TOP,
                 x,
                 y,
-                Width,
-                Height,
+                windowWidth,
+                windowHeight,
                 SWP_FRAMECHANGED |
                 SWP_SHOWWINDOW
                 );
@@ -1059,9 +1062,16 @@ namespace D007Adventure.Graphics
             switch (message)
             {
                 //----------------------------------------------------
+                // Gib das empfangene Zeichen an den jeweiligen
+                // Empfänger weiter.
+                //----------------------------------------------------
+                case WM_CHAR:
+                    CharacterReceived?.Invoke((char)wParam.ToInt32());
+                    return IntPtr.Zero;
+
+                //----------------------------------------------------
                 // Der Benutzer möchte das Fenster schließen.
                 //----------------------------------------------------
-
                 case WM_CLOSE:
                     {
                         ShouldClose = true;

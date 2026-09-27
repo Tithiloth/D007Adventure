@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace D007Adventure.Graphics
@@ -45,7 +46,7 @@ namespace D007Adventure.Graphics
         // Bleibt immer 500, 300 und 64x64
         //
         //============================================================
-        private const int VirtualWidht = 1920;
+        private const int VirtualWidth = 1920;
         private const int VirtualHeight = 1080;
 
         //============================================================
@@ -115,7 +116,7 @@ namespace D007Adventure.Graphics
             {
                 Left = 0,
                 Top = 0,
-                Right = VirtualWidht,
+                Right = VirtualWidth,
                 Bottom = VirtualHeight
             };
 
@@ -176,6 +177,7 @@ namespace D007Adventure.Graphics
                     );
 
                 windowDC = IntPtr.Zero;
+
                 return;
             }
 
@@ -191,14 +193,17 @@ namespace D007Adventure.Graphics
                     window.Handle,
                     windowDC
                     );
+
                 windowDC = IntPtr.Zero;
+
                 return;
             }
 
             //----------------------------------------------------
             // Seitenverhältnis berechnen.
             //----------------------------------------------------
-            float scaleX = (float)clientWidth / VirtualWidht;
+            float scaleX = (float)clientWidth / VirtualWidth;
+
             float scaleY = (float)clientHeight / VirtualHeight;
 
             // Wir verwenden den kleineren Wert.
@@ -206,7 +211,7 @@ namespace D007Adventure.Graphics
             float scale = Math.Min(scaleX, scaleY);
 
             int destinationWidth =
-                (int)(VirtualWidht * scale);
+                (int)(VirtualWidth * scale);
 
             int destinationHeight =
                 (int)(VirtualHeight * scale);
@@ -232,7 +237,7 @@ namespace D007Adventure.Graphics
                 );
 
             //----------------------------------------------------
-            // Virtuellen BackBuffer auf Bildschirm skallieren.
+            // Virtuellen BackBuffer auf Bildschirm skalieren.
             //----------------------------------------------------
             bool success = StretchBlt(
                 windowDC,
@@ -244,7 +249,7 @@ namespace D007Adventure.Graphics
                 backBufferDC,
                 0,
                 0,
-                VirtualWidht,
+                VirtualWidth,
                 VirtualHeight,
 
                 SRCCOPY
@@ -262,9 +267,9 @@ namespace D007Adventure.Graphics
             windowDC = IntPtr.Zero;
         }
 
-        // ========================================================
+        //========================================================
         // DRAW RECTANGLE
-        // ========================================================
+        //========================================================
         //
         // Zeichnet ein Rechteck.
         //
@@ -275,7 +280,7 @@ namespace D007Adventure.Graphics
         //
         // Das Test-Rechteck ist momentan rot.
         //
-        // ========================================================
+        //========================================================
 
         public void DrawRectangle(
             int x,
@@ -315,13 +320,13 @@ namespace D007Adventure.Graphics
         }
 
 
-        // ========================================================
+        //========================================================
         // DRAW IMAGE
-        // ========================================================
+        //========================================================
         //
         // Zeichnet ein geladenes HBITMAP in den Backbuffer.
         //
-        // ========================================================
+        //========================================================
 
         public void DrawImage(
             IntPtr image,
@@ -360,13 +365,13 @@ namespace D007Adventure.Graphics
                 return;
             }
 
-            // --------------------------------------------------------
+            //--------------------------------------------------------
             // Bild zeichnen.
             //
             // #FF00FF wird dabei transparent behandelt.
-            // -------------------------------------------------------- 
+            //-------------------------------------------------------- 
 
-            bool success = TransparentBlt(
+           TransparentBlt(
                 backBufferDC,
                 x,
                 y,
@@ -378,22 +383,362 @@ namespace D007Adventure.Graphics
                 width,
                 height,
                 RGB(255, 0, 255)
-            );
+                );
 
             // Ursprüngliches Objekt wieder einsetzen.
             SelectObject(
                 memoryDC,
                 oldObject
-            );
+                );
 
             // Temporären Memory-DC freigeben.
             DeleteDC(memoryDC);
         }
 
+        //========================================================
+        // DRAW TEXT
+        //========================================================
+        //
+        // Zeichnet Text direkt in den virtuellen Backbuffer.
+        //
+        // Die Koordinaten beziehen sich wie bei allen anderen
+        // Zeichenfunktionen auf unsere virtuelle Auflösung.
+        //
+        //========================================================
 
-        // ========================================================
+        public void DrawText(
+            string text,
+            int x,
+            int y)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            if (backBufferDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Schrift erstellen.
+            //
+            // Negative Höhe bedeutet bei GDI:
+            // Die gewünschte Zeichenhöhe wird als Höhe der Schrift
+            // verwendet.
+            //--------------------------------------------------------
+
+            IntPtr font = CreateFont(
+                -24,
+                0,
+                0,
+                0,
+                FW_NORMAL,
+                0,
+                0,
+                0,
+                DEFAULT_CHARSET,
+                OUT_DEFAULT_PRECIS,
+                CLIP_DEFAULT_PRECIS,
+                DEFAULT_QUALITY,
+                DEFAULT_PITCH | FF_DONTCARE,
+                "Arial"
+                );
+
+            if (font == IntPtr.Zero)
+            {
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Alte Schrift merken und unsere Schrift auswählen.
+            //--------------------------------------------------------
+
+            IntPtr oldFont = SelectObject(
+                backBufferDC,
+                font
+            );
+
+            if (oldFont == IntPtr.Zero)
+            {
+                DeleteObject(font);
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Hintergrund des Textes transparent machen.
+            //--------------------------------------------------------
+
+            int oldBackgroundMode = SetBkMode(
+                backBufferDC,
+                TRANSPARENT
+                );
+
+            //--------------------------------------------------------
+            // Textfarbe auf Weiß setzen.
+            //--------------------------------------------------------
+
+            uint oldTextColor = SetTextColor(
+                backBufferDC,
+                RGB(255, 255, 255)
+                );
+
+            //--------------------------------------------------------
+            // Textbreite ermitteln.
+            //
+            // Damit können wir den Text später bequem rechtsbündig
+            // zeichnen.
+            //--------------------------------------------------------
+
+            if (!GetTextExtentPoint32(
+                backBufferDC,
+                text,
+                text.Length,
+                out SIZE textSize))
+            {
+                // Alte Einstellungen wiederherstellen.
+                SetTextColor(backBufferDC, oldTextColor);
+                SetBkMode(backBufferDC, oldBackgroundMode);
+
+                SelectObject(
+                    backBufferDC,
+                    oldFont
+                    );
+
+                DeleteObject(font);
+
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Text zeichnen.
+            //--------------------------------------------------------
+
+            TextOut(
+                backBufferDC,
+                x,
+                y,
+                text,
+                text.Length
+                );
+
+            //--------------------------------------------------------
+            // GDI-Zustand wiederherstellen.
+            //--------------------------------------------------------
+
+            SetTextColor(
+                backBufferDC,
+                oldTextColor
+                );
+
+            SetBkMode(
+                backBufferDC,
+                oldBackgroundMode
+                );
+
+            SelectObject(
+                backBufferDC,
+                oldFont
+                );
+
+            DeleteObject(font);
+        }
+
+        public void DrawTextRight(
+            string text,
+            int rightMargin,
+            int y)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            if (backBufferDC == IntPtr.Zero)
+            {
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Schrift erstellen.
+            //--------------------------------------------------------
+
+            IntPtr font = CreateFont(
+                -24,
+                0,
+                0,
+                0,
+                FW_NORMAL,
+                0,
+                0,
+                0,
+                DEFAULT_CHARSET,
+                OUT_DEFAULT_PRECIS,
+                CLIP_DEFAULT_PRECIS,
+                DEFAULT_QUALITY,
+                DEFAULT_PITCH | FF_DONTCARE,
+                "Arial"
+                );
+
+            if (font == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr oldFont = SelectObject(
+                backBufferDC,
+                font
+            );
+
+            if (oldFont == IntPtr.Zero)
+            {
+                DeleteObject(font);
+                return;
+            }
+
+            //--------------------------------------------------------
+            // Text transparent und weiß zeichnen.
+            //--------------------------------------------------------
+
+            int oldBackgroundMode = SetBkMode(
+                backBufferDC,
+                TRANSPARENT
+                );
+
+            uint oldTextColor = SetTextColor(
+                backBufferDC,
+                RGB(255, 255, 255)
+                );
+
+            //--------------------------------------------------------
+            // Breite des Textes ermitteln.
+            //--------------------------------------------------------
+
+            if (!GetTextExtentPoint32(
+                backBufferDC,
+                text,
+                text.Length,
+                out SIZE textSize))
+            {
+                SetTextColor(
+                    backBufferDC,
+                    oldTextColor
+                );
+
+                SetBkMode(
+                    backBufferDC,
+                    oldBackgroundMode
+                );
+
+                SelectObject(
+                    backBufferDC,
+                    oldFont
+                );
+
+                DeleteObject(font);
+
+                return;
+            }
+
+            //--------------------------------------------------------
+            // X-Position berechnen.
+            //
+            // Beispiel:
+            //
+            // VirtualWidth = 1920
+            // rightMargin  = 20
+            // Textbreite   = 80
+            //
+            // X = 1920 - 20 - 80
+            // X = 1820
+            //--------------------------------------------------------
+
+            int x =
+                VirtualWidth -
+                rightMargin -
+                textSize.Width;
+
+            //--------------------------------------------------------
+            // Text zeichnen.
+            //--------------------------------------------------------
+
+            TextOut(
+                backBufferDC,
+                x,
+                y,
+                text,
+                text.Length
+                );
+
+            //--------------------------------------------------------
+            // GDI-Zustand wiederherstellen.
+            //--------------------------------------------------------
+
+            SetTextColor(
+                backBufferDC,
+                oldTextColor
+                );
+
+            SetBkMode(
+                backBufferDC,
+                oldBackgroundMode
+                );
+
+            SelectObject(
+                backBufferDC,
+                oldFont
+                );
+
+            DeleteObject(font);
+        }
+
+        //========================================================
+        // DRAW FILLEDRECTANGLE
+        //========================================================
+        //
+        // Zeichnet unserer DebugConsole ein schönes Rechteck.
+        //
+        // Die Koordinaten beziehen sich wie bei allen anderen
+        // Zeichenfunktionen auf unsere virtuelle Auflösung.
+        //
+        //========================================================
+        public void DrawFilledRectangle(
+            int x,
+            int y,
+            int width,
+            int height,
+            byte red,
+            byte green,
+            byte blue)
+        {
+            if (backBufferDC == IntPtr.Zero)
+                return;
+
+            RECT rectangle = new RECT
+            {
+                Left = x,
+                Top = y,
+                Right = x + width,
+                Bottom = y + height
+            };
+
+            // Erstellt einen temporären Pinsel für die Füllfarbe.
+            IntPtr brush = CreateSolidBrush(RGB(red, green, blue));
+
+            if (brush == IntPtr.Zero)
+                return;
+
+            // Füllt das Rechteck mit dem erstellten Pinsel.
+            FillRect(backBufferDC, ref rectangle, brush);
+
+            // Der Pinsel wird nach dem Zeichnen nicht mehr benötigt.
+            DeleteObject(brush);
+        }
+
+        //========================================================
         // CREATE BACK BUFFER
-        // ========================================================
+        //========================================================
         //
         // Der Backbuffer sorgt dafür, dass wir nicht direkt
         // auf das sichtbare Fenster zeichnen.
@@ -401,7 +746,7 @@ namespace D007Adventure.Graphics
         // Dadurch können wir einen kompletten Frame vorbereiten
         // und ihn anschließend mit BitBlt auf einmal anzeigen.
         //
-        // ========================================================
+        //========================================================
 
         private void CreateBackBuffer()
         {
@@ -448,7 +793,7 @@ namespace D007Adventure.Graphics
             //----------------------------------------------------
             backBufferBitmap = CreateCompatibleBitmap(
                 screenDC,
-                VirtualWidht,
+                VirtualWidth,
                 VirtualHeight
                 );
 
@@ -497,9 +842,9 @@ namespace D007Adventure.Graphics
         }
 
 
-        // ========================================================
+        //========================================================
         // DISPOSE
-        // ========================================================
+        //========================================================
         //
         // Hier werden alle nativen GDI-Ressourcen des Renderers
         // freigegeben.
@@ -510,7 +855,7 @@ namespace D007Adventure.Graphics
         // 2. Backbuffer-DC löschen
         // 3. Backbuffer-Bitmap löschen
         //
-        // ========================================================
+        //========================================================
 
         public void Dispose()
         {
@@ -563,9 +908,9 @@ namespace D007Adventure.Graphics
         }
 
 
-        // ========================================================
+        //========================================================
         // RGB
-        // ========================================================
+        //========================================================
         //
         // Wandelt Rot, Grün und Blau in einen Windows-Farbwert um.
         //
@@ -575,7 +920,7 @@ namespace D007Adventure.Graphics
         //
         // ergibt Rot.
         //
-        // ========================================================
+        //========================================================
 
         private static uint RGB(
             byte red,
@@ -590,9 +935,9 @@ namespace D007Adventure.Graphics
         }
 
 
-        // ========================================================
+        //========================================================
         // RECT
-        // ========================================================
+        //========================================================
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
@@ -603,10 +948,19 @@ namespace D007Adventure.Graphics
             public int Bottom;
         }
 
+        //========================================================
+        // DRAW TEXT
+        //========================================================
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SIZE
+        {
+            public int Width;
+            public int Height;
+        }
 
-        // ========================================================
+        //========================================================
         // WINDOWS API
-        // ========================================================
+        //========================================================
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetDC(
@@ -631,14 +985,13 @@ namespace D007Adventure.Graphics
             IntPtr brush);
 
 
-        // ========================================================
+        //========================================================
         // GDI
-        // ========================================================
+        //========================================================
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr CreateSolidBrush(
             uint color);
-
 
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(
@@ -703,7 +1056,65 @@ namespace D007Adventure.Graphics
             IntPtr deviceContext,
             int stretchMode);
 
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr CreateFont(
+            int height,
+            int width,
+            int escapement,
+            int orientation,
+            int weight,
+            byte italic,
+            byte underline,
+            byte strikeOut,
+            byte charSet,
+            byte outputPrecision,
+            byte clipPrecision,
+            byte quality,
+            byte pitchAndFamily,
+            string faceName);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern int SetBkMode(
+            IntPtr deviceContext,
+            int backgroundMode);
+
+
+        [DllImport("gdi32.dll")]
+        private static extern uint SetTextColor(
+            IntPtr deviceContext,
+            uint color);
+
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool TextOut(
+            IntPtr deviceContext,
+            int x,
+            int y,
+            string text,
+            int length);
+
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool GetTextExtentPoint32(
+            IntPtr deviceContext,
+            string text,
+            int length,
+            out SIZE size);
+
         private const int COLORONCOLOR = 3;
+
+        private const int TRANSPARENT = 1;
+
+        private const int FW_NORMAL = 400;
+
+        private const byte DEFAULT_CHARSET = 1;
+        private const byte OUT_DEFAULT_PRECIS = 0;
+        private const byte CLIP_DEFAULT_PRECIS = 0;
+        private const byte DEFAULT_QUALITY = 0;
+
+        private const byte DEFAULT_PITCH = 0;
+        private const byte FF_DONTCARE = 0;
 
         private const uint SRCCOPY = 0x00CC0020;
     }

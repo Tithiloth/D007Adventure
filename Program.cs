@@ -33,7 +33,6 @@ namespace D007Adventure
 
                 Game game = new Game();
 
-
                 try
                 {
                     Logger.Info(
@@ -51,11 +50,6 @@ namespace D007Adventure
                     // Die nativen Ressourcen werden aufgeräumt.
                     game.Dispose();
                 }
-
-
-                Logger.Info(
-                    "Game wurde beendet."
-                );
             }
             catch (Exception exception)
             {

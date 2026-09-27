@@ -5,6 +5,7 @@ using D007Adventure.Audio;
 using System;
 using System.Threading;
 using System.ComponentModel.Design;
+using D007Adventure.Debugger;
 
 namespace D007Adventure
 {
@@ -37,6 +38,9 @@ namespace D007Adventure
 
         // Unser 2D-Renderer.
         private readonly Renderer2D renderer;
+
+        //Unsere DebugConole
+        private readonly DebugConsole debugConsole;
 
         // Unser Input-System.
         private readonly D007Adventure.Input.Input input;
@@ -78,6 +82,11 @@ namespace D007Adventure
         // Maus-Input-System.
         private readonly Mouse mouse;
 
+        // Unser FrameLimiter für die gewünschte Bildrate.
+        private readonly FrameLimiter frameLimiter;
+        // Und der dazuhörige Frame Counter
+        private readonly FpsCounter fpsCounter;
+
         // ========================================================
         // KONSTRUKTOR
         // ========================================================
@@ -87,10 +96,14 @@ namespace D007Adventure
             // Wir erstellen das Fenster.
             window = new Window(
                 1,
-                WindowMode.Windowed);
+                WindowMode.Fullscreen);
 
             // Wir erstellen den Renderer.
             renderer = new Renderer2D(window);
+
+            // Wir erstellen die Konsole
+            debugConsole = new DebugConsole(renderer);
+            window.CharacterReceived += debugConsole.HandleCharacter;
 
             // Wir erstellen unser Input-System.
             input = new D007Adventure.Input.Input();
@@ -100,6 +113,15 @@ namespace D007Adventure
 
             // Wir erstellen das Maus-Input-System.
             mouse = new Mouse(window);
+
+            // Wir erstellen den FrameLimiter.
+            // Standardmäßig läuft das Spiel mit 60 FPS.
+            frameLimiter = new FrameLimiter(
+                FpsLimit.Fps60
+                );
+
+            // Wir erstellen den FrameCounter
+            fpsCounter = new FpsCounter();
 
             // Wir erstellen den WavPlayer.
             wavPlayer = new WavPlayer();
@@ -424,6 +446,65 @@ namespace D007Adventure
                                 graphicsOptions.pullDownRes = false;
                             }
                         }
+
+                        if (mouse.LeftButtonPressed &&
+                            mouse.X >= 768 &&
+                            mouse.X <= 832 &&
+                            mouse.Y >= 501 &&
+                            mouse.Y <= 564)
+                        {
+                            graphicsOptions.pullDownFps = true;
+                            graphicsOptions.pullDownModi = false;
+                            graphicsOptions.pullDownRes = false;
+                        }
+
+                        if (graphicsOptions.pullDownFps)
+                        {
+                            // 30 FPS auswählen
+                            if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 564 &&
+                                mouse.Y <= 627)
+                            {
+                                frameLimiter.Limit = FpsLimit.Fps30;
+                                graphicsOptions.pullDownFps = false;
+
+                                Logger.Info(
+                                    "FPS-Limit auf 30 FPS gesetzt."
+                                );
+                            }
+
+                            // 60 FPS auswählen
+                            else if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 628 &&
+                                mouse.Y <= 691)
+                            {
+                                frameLimiter.Limit = FpsLimit.Fps60;
+                                graphicsOptions.pullDownFps = false;
+
+                                Logger.Info(
+                                    "FPS-Limit auf 60 FPS gesetzt."
+                                );
+                            }
+
+                            // 90 FPS auswählen
+                            else if (mouse.LeftButtonPressed &&
+                                mouse.X >= 512 &&
+                                mouse.X <= 768 &&
+                                mouse.Y >= 692 &&
+                                mouse.Y <= 755)
+                            {
+                                frameLimiter.Limit = FpsLimit.Fps90;
+                                graphicsOptions.pullDownFps = false;
+
+                                Logger.Info(
+                                    "FPS-Limit auf 90 FPS gesetzt."
+                                );
+                            }
+                        }
                     }
                     else if (showSoundOptionsMenu)
                     {
@@ -486,8 +567,26 @@ namespace D007Adventure
                 else
                 {
                     DrawGame();
+
+                    // Unsere Konsole
+                    if (input.IsKeyPressed(ConsoleKey.F1))
+                    {
+                        debugConsole.Toggle();
+                    }
+
+                    if (debugConsole.IsOpen)
+                    {
+                        debugConsole.Render();
+                    }
                 }
 
+                string fpsText = $"FPS: {fpsCounter.CurrentFps}";
+
+                renderer.DrawTextRight(
+                    fpsText,
+                    20,
+                    20
+                    );
 
                 // ------------------------------------------------
                 // 6. FRAME AUF DEN BILDSCHIRM KOPIEREN
@@ -495,12 +594,16 @@ namespace D007Adventure
 
                 renderer.End();
 
+                // ------------------------------------------------
+                // 7. FPS BEGRENZEN
+                // ------------------------------------------------
+                fpsCounter.Update();
 
                 // ------------------------------------------------
                 // 7. FPS BEGRENZEN
                 // ------------------------------------------------
 
-                Thread.Sleep(16);
+                frameLimiter.Wait();
             }
         }
 

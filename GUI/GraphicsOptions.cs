@@ -24,12 +24,17 @@ namespace D007Adventure.GUI
         private IntPtr vsync;
         private IntPtr check;
         private IntPtr checkp;
+        private IntPtr fps;
+        private IntPtr fps30;
+        private IntPtr fps60;
+        private IntPtr fps90;
         private readonly ImageLoader imageLoader;
         private readonly D007Adventure.Input.Input input;
         private readonly Renderer2D renderer;
 
         public bool pullDownModi = false;
         public bool pullDownRes = false;
+        public bool pullDownFps = false;
 
         public GraphicsOptions(
             ImageLoader imageLoader,
@@ -100,6 +105,22 @@ namespace D007Adventure.GUI
                 "Assets/Buttons/CheckP.png"
                 );
 
+            fps = imageLoader.Load(
+                "Assets/Buttons/FPS.png"
+                );
+
+            fps30 = imageLoader.Load(
+                "Assets/Buttons/30FPS.png"
+                );
+
+            fps60 = imageLoader.Load(
+                "Assets/Buttons/60FPS.png"
+                );
+
+            fps90 = imageLoader.Load(
+                "Assets/buttons/90FPS.png"
+                );
+
             if (background == IntPtr.Zero)
             {
                 Logger.Error(
@@ -135,23 +156,16 @@ namespace D007Adventure.GUI
                 200, 200, 256, 64
                 );
 
+            renderer.DrawImage(
+                drop,
+                512, 200, 330, 64
+                );
+            
             // Auflösung zeichnen
             renderer.DrawImage(
                 resolution,
                 200, 300, 256, 64
                 );
-
-            // Vsync zeichnen
-            renderer.DrawImage(
-                vsync,
-                200, 400, 256, 64
-                );
-
-            renderer.DrawImage(
-                drop,
-                512, 200, 330, 64
-                );
-
             renderer.DrawImage(
                 drop,
                 512, 300, 330, 64
@@ -161,6 +175,16 @@ namespace D007Adventure.GUI
                 check,
                 512, 400, 64, 64
                 );
+
+            // Frame-Limiter
+            renderer.DrawImage(
+                fps,
+                200, 500, 256, 64
+                );
+
+            renderer.DrawImage(
+                drop,
+                512, 500, 330, 64);
 
             if (pullDownModi)
             {
@@ -178,14 +202,13 @@ namespace D007Adventure.GUI
                     borderless,
                     512, 328, 256, 64
                     );
-
                 renderer.DrawImage(
                     fullscreen,
                     512, 392, 256, 64
                     );
             }
 
-            if(pullDownRes)
+            if (pullDownRes)
             {
                 renderer.DrawImage(
                 pulldown,
@@ -207,6 +230,35 @@ namespace D007Adventure.GUI
                     512, 492, 256, 64
                     );
             }
+
+            if(pullDownFps)
+            {
+                renderer.DrawImage(
+                    pulldown,
+                    512, 564, 256, 192
+                    );
+
+                renderer.DrawImage(
+                    fps30,
+                    512, 564, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    fps60,
+                    512, 628, 256, 64
+                    );
+
+                renderer.DrawImage(
+                    fps90,
+                    512, 692, 256, 64
+                    );
+            }
+
+            // Vsync zeichnen
+            renderer.DrawImage(
+                vsync,
+                200, 400, 256, 64
+                );
         }
 
         public void Dispose()
