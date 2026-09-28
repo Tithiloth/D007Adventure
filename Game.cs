@@ -2,10 +2,12 @@
 using D007Adventure.Input;
 using D007Adventure.GUI;
 using D007Adventure.Audio;
+using D007Adventure.Tools;
 using System;
 using System.Threading;
 using System.ComponentModel.Design;
 using D007Adventure.Debugger;
+using D007Adventure.DatabaseManager;
 
 namespace D007Adventure
 {
@@ -47,6 +49,9 @@ namespace D007Adventure
 
         // Unser ImageLoader.
         private readonly ImageLoader imageLoader;
+
+        // Unser Datenbank Manager
+        private readonly D007Adventure.DatabaseManager.DatabaseManager databaseManager;
 
         // Unser MainMenu.
         private readonly MMenu mainMenu;
@@ -128,6 +133,86 @@ namespace D007Adventure
 
             gameStarted = false;
 
+            // Wir erstellen unseren DatabaseManager
+            databaseManager = new D007Adventure.DatabaseManager.DatabaseManager();
+
+            databaseManager.TestDatabase();
+            databaseManager.TestToolsDatabase();
+
+            Logger.Info(
+                "Datenbanktest abgeschlossen."
+                );
+
+            List<Dictionary<string, object?>> items =
+            databaseManager.ExecuteReader(
+                "game",
+                "SELECT * FROM Items;"
+                );
+
+            List<string> tables =
+                databaseManager.GetTables("game");
+
+            foreach (string table in tables)
+            {
+                Logger.Info(
+                    $"Tabelle gefunden: {table}"
+                );
+
+                List<Dictionary<string, object?>> columns =
+                    databaseManager.GetColumns(
+                        "game",
+                        table
+                    );
+
+                foreach (Dictionary<string, object?> column in columns)
+                {
+                    Logger.Info(
+                        $"  Spalte: {column["name"]} | " +
+                        $"Typ: {column["type"]} | " +
+                        $"PrimaryKey: {column["pk"]}"
+                    );
+                }
+            }
+
+            foreach (Dictionary<string, object?> item in items)
+            {
+                Logger.Info(
+                    $"Item: {item["ItemID"]} | " +
+                    $"Name: {item["Name"]} | " +
+                    $"Damage: {item["Damage"]} | " +
+                    $"Skin: {item["Skin"]}"
+                );
+            }
+
+            //List<Dictionary<string, object?>> tools =
+            //    databaseManager.ExecuteReader(
+            //        "Tools",
+            //        "SELECT * FROM Tools;"
+            //    );
+
+            //foreach (Dictionary<string, object?> tool in tools)
+            //{
+            //    Logger.Info(
+            //        $"Tool: {tool["ToolID"]} | " +
+            //        $"Name: {tool["Name"]} | " +
+            //        $"Damage: {tool["Damage"]} | " +
+            //        $"Tier: {tool["Tier"]} | " +
+            //        $"MaxTier: {tool["MaxTier"]}"
+            //        );
+            //}
+
+            List<Tool> tools = databaseManager.LoadTools();
+
+            foreach (Tool tool in tools)
+            {
+                Logger.Info(
+                    $"C# Tool: {tool.Name} | " +
+                    $"Damage: {tool.Damage} | " +
+                    $"Tier: {tool.Tier} | " +
+                    $"MaxTier: {tool.MaxTier}"
+                );
+            }
+
             // Wir erstellen unser MainMenu.
             mainMenu = new MMenu(
                 imageLoader,
@@ -184,12 +269,12 @@ namespace D007Adventure
                 );
         }
 
-        // ========================================================
+        //========================================================
         // RUN
-        // ========================================================
+        //========================================================
         //
         // Diese Methode startet die Game Loop.
-        // ========================================================
+        //========================================================
 
         public void Run()
         {
@@ -216,9 +301,13 @@ namespace D007Adventure
 
             while (!window.ShouldClose)
             {
-                // ------------------------------------------------
+                //------------------------------------------------
+                // DATABASEMANAGER UPDATEN
+                //------------------------------------------------
+                databaseManager.Update();
+                //------------------------------------------------
                 // 1. WINDOWS-NACHRICHTEN VERARBEITEN
-                // ------------------------------------------------
+                //------------------------------------------------
 
                 window.ProcessMessages();
 
@@ -230,16 +319,16 @@ namespace D007Adventure
                     break;
                 }
 
-                // ------------------------------------------------
-                // 2. INPUT AKTUALISIEREN
-                // ------------------------------------------------
+                //------------------------------------------------
+                // 2. INPUT UND MAUS AKTUALISIEREN
+                //------------------------------------------------
 
                 input.Update();
                 mouse.Update();
 
-                // ------------------------------------------------
+                //------------------------------------------------
                 // 3. ESCAPE PRÜFEN
-                // ------------------------------------------------
+                //------------------------------------------------
 
                 if (input.IsKeyPressed(ConsoleKey.Escape))
                 {
@@ -591,7 +680,6 @@ namespace D007Adventure
                 // ------------------------------------------------
                 // 6. FRAME AUF DEN BILDSCHIRM KOPIEREN
                 // ------------------------------------------------
-
                 renderer.End();
 
                 // ------------------------------------------------
@@ -602,7 +690,6 @@ namespace D007Adventure
                 // ------------------------------------------------
                 // 7. FPS BEGRENZEN
                 // ------------------------------------------------
-
                 frameLimiter.Wait();
             }
         }
@@ -648,6 +735,9 @@ namespace D007Adventure
 
         public void Dispose()
         {
+            // Databasemanager freigeben.
+            databaseManager.Dispose();
+
             // Das geladene Hintergrundbild freigeben.
             mainMenu.Dispose();
 
@@ -676,3 +766,4 @@ namespace D007Adventure
 // {
 //     player.X += 5;
 // }
+//=============================================================

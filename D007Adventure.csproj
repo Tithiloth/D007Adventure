@@ -14,6 +14,7 @@
   <ItemGroup>
     <Folder Include="Assets\Backgrounds\" />
     <Folder Include="Assets\Config\" />
+    <Folder Include="Database\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -111,6 +112,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Player.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="sqlite3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
