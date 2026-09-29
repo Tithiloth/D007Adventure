@@ -408,13 +408,45 @@ namespace D007Adventure.DatabaseManager
 
             foreach (Dictionary<string, object?> row in rows)
             {
-                Tool tool = new Tool
+                Tool? tool = null;
+
+                string type =
+                    row.ContainsKey("Type")
+                        ? row["Type"]?.ToString() ?? ""
+                        : "";
+
+                switch (type)
                 {
-                    Name = row["Name"]?.ToString() ?? "default",
-                    Damage = Convert.ToInt32(row["Damage"]),
-                    Tier = Convert.ToInt32(row["Tier"]),
-                    MaxTier = Convert.ToInt32(row["MaxTier"])
-                };
+                    case "Schaufel":
+                        tool = new Schaufel();
+                        break;
+
+                    case "Messer":
+                        tool = new Messer();
+                        break;
+
+                    case "Kessel":
+                        tool = new Kessel();
+                        break;
+
+                    default:
+                        Logger.Error(
+                            $"Unbekannter Tool-Typ: {type}"
+                        );
+                        continue;
+                }
+
+                tool.Name =
+                    row["Name"]?.ToString() ?? "default";
+
+                tool.Damage =
+                    Convert.ToInt32(row["Damage"]);
+
+                tool.Tier =
+                    Convert.ToInt32(row["Tier"]);
+
+                tool.MaxTier =
+                    Convert.ToInt32(row["MaxTier"]);
 
                 tools.Add(tool);
             }
@@ -461,6 +493,20 @@ namespace D007Adventure.DatabaseManager
 
         public void TestToolsDatabase()
         {
+            if (!databases.ContainsKey("Tools"))
+            {
+                string toolsDatabasePath =
+                    Path.Combine(
+                        databaseDirectory,
+                        "Tools.db"
+                    );
+
+                LoadDatabase(
+                    toolsDatabasePath,
+                    false
+                );
+            }
+
             ExecuteNonQuery(
                 "Tools",
                 """
@@ -468,6 +514,7 @@ namespace D007Adventure.DatabaseManager
                 (
                     ToolID INTEGER PRIMARY KEY,
                     Name TEXT NOT NULL,
+                    Type TEXT NOT NULL,
                     Damage INTEGER NOT NULL,
                     Tier INTEGER NOT NULL,
                     MaxTier INTEGER NOT NULL
@@ -481,9 +528,9 @@ namespace D007Adventure.DatabaseManager
                 "Tools",
                 """
                 INSERT OR IGNORE INTO Tools
-                (ToolID, Name, Damage, Tier, MaxTier)
+                (ToolID, Name, Type, Damage, Tier, MaxTier)
                 VALUES
-                (1, 'Schaufel', 1, 0, 5);
+                (1, 'Schaufel', 'Schaufel', 1, 0, 5);
                 """
                 );
 
@@ -491,9 +538,9 @@ namespace D007Adventure.DatabaseManager
                 "Tools",
                 """
                 INSERT OR IGNORE INTO Tools
-                (ToolID, Name, Damage, Tier, MaxTier)
+                (ToolID, Name, Type, Damage, Tier, MaxTier)
                 VALUES
-                (2, 'Messer', 2, 0, 5);
+                (2, 'Messer', 'Messer', 2, 0, 5);
                 """
                 );
 
@@ -501,9 +548,9 @@ namespace D007Adventure.DatabaseManager
                 "Tools",
                 """
                 INSERT OR IGNORE INTO Tools
-                (ToolID, Name, Damage, Tier, MaxTier)
+                (ToolID, Name, Type, Damage, Tier, MaxTier)
                 VALUES
-                (3, 'Kessel', 0, 0, 5);
+                (3, 'Kessel', 'Kessel', 0, 0, 5);
                 """
                 );
 

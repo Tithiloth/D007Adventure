@@ -53,6 +53,9 @@ namespace D007Adventure
         // Unser Datenbank Manager
         private readonly D007Adventure.DatabaseManager.DatabaseManager databaseManager;
 
+        // Unsere Tools aus der Datenbank.
+        private readonly List<Tool> tools;
+
         // Unser MainMenu.
         private readonly MMenu mainMenu;
 
@@ -138,6 +141,7 @@ namespace D007Adventure
 
             databaseManager.TestDatabase();
             databaseManager.TestToolsDatabase();
+            tools = databaseManager.LoadTools();
 
             Logger.Info(
                 "Datenbanktest abgeschlossen."
@@ -184,34 +188,18 @@ namespace D007Adventure
                 );
             }
 
-            //List<Dictionary<string, object?>> tools =
-            //    databaseManager.ExecuteReader(
-            //        "Tools",
-            //        "SELECT * FROM Tools;"
-            //    );
-
-            //foreach (Dictionary<string, object?> tool in tools)
-            //{
-            //    Logger.Info(
-            //        $"Tool: {tool["ToolID"]} | " +
-            //        $"Name: {tool["Name"]} | " +
-            //        $"Damage: {tool["Damage"]} | " +
-            //        $"Tier: {tool["Tier"]} | " +
-            //        $"MaxTier: {tool["MaxTier"]}"
-            //        );
-            //}
-
-            List<Tool> tools = databaseManager.LoadTools();
-
             foreach (Tool tool in tools)
             {
                 Logger.Info(
-                    $"C# Tool: {tool.Name} | " +
+                    $"C# Tool: {tool.GetType().Name} | " +
+                    $"Name: {tool.Name}" +
                     $"Damage: {tool.Damage} | " +
                     $"Tier: {tool.Tier} | " +
                     $"MaxTier: {tool.MaxTier}"
                 );
             }
+
+            tools = databaseManager.LoadTools();
 
             // Wir erstellen unser MainMenu.
             mainMenu = new MMenu(
