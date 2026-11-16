@@ -2,6 +2,9 @@
 
 namespace D007Adventure
 {
+    /// <summary>
+    /// dass ist ein Test zum Auslösen von merging
+    /// </summary>
     // ============================================================
     // PROGRAM
     // ============================================================
